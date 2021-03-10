@@ -1,0 +1,23 @@
+from setuptools import setup
+
+with open("README.md", "r") as f:
+    long_description = f.read()
+
+setup(name='pytmangadex',
+      packages = [
+          "pytmangadex"
+      ],
+      version='0',
+      description='An API wrapper for MangaDex.',
+      long_description=long_description,
+      long_description_content_type='text/markdown',
+      url='https://github.com/Proxymiity/MangaDex.py',
+      download_url= 'https://github.com/Proxymiity/MangaDex.py/releases',
+      author='Proxymiity',
+      author_email='commits@proxymiity.fr',
+      license='MIT',
+      install_requires=[
+          'requests',
+      ],
+      zip_safe=False
+      )
