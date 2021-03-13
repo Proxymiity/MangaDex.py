@@ -34,3 +34,16 @@ class MangaDex:
         else:
             self.login_success = True
             return True
+
+    def get_manga(self, id_: int, full=False) -> Manga:
+        p = None
+        if full:
+            p = {"include": "chapters"}
+        req = self.session.get("{}/manga/{}".format(self.api, id_), params=p)
+
+        if req.status_code == 200:
+            json = req.json()["data"]
+            if full:
+                return Manga(json["manga"], self.session, json["chapters"], json["groups"])
+            else:
+                return Manga(json, self.session)
