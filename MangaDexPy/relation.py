@@ -4,6 +4,7 @@ relations = {1: "prequel", 2: "sequel", 3: "adaptation", 4: "spin_off", 5: "side
 
 
 class Relation:
+    """Represents a MangaDex Manga Relation."""
     __slots__ = ("id", "title", "type", "hentai")
 
     def __init__(self, data):

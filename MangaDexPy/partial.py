@@ -1,4 +1,5 @@
 class PartialChapter:
+    """Represents a MangaDex Chapter, but with reduced info."""
     __slots__ = ("id", "hash", "manga_id", "manga_title", "volume", "chapter", "title", "language", "groups",
                  "uploader", "timestamp", "thread_id", "views")
 
@@ -19,6 +20,7 @@ class PartialChapter:
 
 
 class PartialGroup:
+    """Represents a MangaDex Group, but with reduced info."""
     __slots__ = ("id", "name")
 
     def __init__(self, data):

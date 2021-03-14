@@ -3,6 +3,7 @@ hentai_mode = {0: "disabled", 1: "show", 2: "only"}
 
 
 class User:
+    """Represents a MangaDex User."""
     __slots__ = ("id", "username", "level_id", "joined", "last_seen", "website", "bio", "views", "uploads", "premium",
                  "md_ah", "avatar", "chapters_uploaded", "groups")
 
@@ -24,6 +25,7 @@ class User:
 
 
 class UserSettings:
+    """Represents a MangaDex User's settings."""
     __slots__ = ("id", "hentai_mode", "latest_update", "show_moderated_posts", "show_unavailable_chapters",
                  "whitelisted_languages", "blacklisted_tags")
 
@@ -38,6 +40,7 @@ class UserSettings:
 
 
 class UserFollow:
+    """Represents a MangaDex User's followed manga."""
     __slots__ = ("user", "id", "title", "hentai", "follow_type", "user_volume", "user_chapter", "user_rating", "cover")
 
     def __init__(self, data):
@@ -53,6 +56,7 @@ class UserFollow:
 
 
 class UserUpdate:
+    """Represents a MangaDex User's feed item."""
     __slots__ = ("id", "hash", "manga_id", "manga_title", "volume", "chapter", "title", "language", "groups",
                  "uploader", "timestamp", "thread_id", "comments", "views", "read")
 

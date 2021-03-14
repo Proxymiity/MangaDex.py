@@ -2,6 +2,7 @@ from .partial import PartialChapter, PartialGroup
 
 
 class Group:
+    """Represents a MangaDex Group."""
     __slots__ = ("id", "name", "names", "language", "leader", "members", "desc", "website", "discord", "irc_server",
                  "irc_channel", "email", "founded_on", "follows", "views", "chapters", "thread_id", "thread_posts",
                  "locked", "inactive", "delay", "last_update", "banner", "chapters_uploaded", "collabs")

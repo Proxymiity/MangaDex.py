@@ -5,6 +5,7 @@ statuses = {0: None, 1: "ongoing", 2: "completed"}
 
 
 class Manga:
+    """Represents a MangaDex Manga."""
     __slots__ = ("id", "title", "titles", "desc", "artist", "author", "language", "status", "type", "tag_ids",
                  "last_chapter", "last_volume", "hentai", "links", "relations", "ratings", "views", "follows",
                  "comments", "last_upload", "cover", "chapters", "groups", "session")
