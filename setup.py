@@ -17,7 +17,7 @@ setup(name='MangaDex.py',
       author_email='commits@proxymiity.fr',
       license='MIT',
       install_requires=[
-          'requests',
+          'requests>=2.25.0',
       ],
       zip_safe=False
       )
