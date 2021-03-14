@@ -72,18 +72,3 @@ class UserUpdate:
         self.comments = data["comments"]
         self.views = data["views"]
         self.read = data["read"]
-
-
-class UserManga:
-    __slots__ = ("user", "id", "title", "hentai", "follow_type", "volume", "chapter", "rating", "cover")
-
-    def __init__(self, data):
-        self.user = data["userId"]
-        self.id = data["mangaId"]
-        self.title = data["mangaTitle"]
-        self.hentai = data["isHentai"]
-        self.follow_type = data["followType"]
-        self.volume = data["volume"]
-        self.chapter = data["chapter"]
-        self.rating = data["rating"]
-        self.cover = data["mainCover"]

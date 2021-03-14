@@ -3,7 +3,7 @@ import time
 from .manga import Manga
 from .chapter import Chapter
 from .group import Group
-from .user import User, UserSettings, UserFollow, UserUpdate, UserManga
+from .user import User, UserSettings, UserFollow, UserUpdate
 
 
 class MangaDex:
@@ -131,14 +131,14 @@ class MangaDex:
             if json:
                 return {x["mangaId"]: x["rating"] for x in json}
 
-    def get_user_manga(self, id_: int, uid: int = 0) -> UserManga:
+    def get_user_manga(self, id_: int, uid: int = 0) -> UserFollow:
         if uid == 0 and self.login_success:
             uid = "me"
         req = self.session.get("{}/user/{}/manga/{}".format(self.api, uid, id_))
 
         if req.status_code == 200:
             json = req.json()["data"]
-            return UserManga(json)
+            return UserFollow(json)
 
     def set_user_markers(self, mangas: list, read: bool, id_: int = 0):
         reqs = []
