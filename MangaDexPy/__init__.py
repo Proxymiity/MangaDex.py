@@ -1,6 +1,7 @@
 import requests
 from .manga import Manga
 from .chapter import Chapter
+from .group import Group
 
 
 class MangaDex:
@@ -55,3 +56,10 @@ class MangaDex:
 
         if req.status_code == 200:
             return Chapter(req.json()["data"], self.session)
+
+    def get_group(self, id_: int) -> Group:
+        req = self.session.get("{}/group/{}".format(self.api, id_))
+
+        if req.status_code == 200:
+            json = req.json()["data"]
+            return Group(json)
