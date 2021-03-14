@@ -2,6 +2,7 @@ import requests
 from .manga import Manga
 from .chapter import Chapter
 from .group import Group
+from .user import User, UserSettings, UserFollow, UserUpdate, UserManga
 
 
 class MangaDex:
@@ -63,3 +64,65 @@ class MangaDex:
         if req.status_code == 200:
             json = req.json()["data"]
             return Group(json)
+
+    def get_user(self, id_: int = 0) -> User:
+        if id_ == 0 and self.login_success:
+            id_ = "me"
+        req = self.session.get("{}/user/{}".format(self.api, id_))
+
+        if req.status_code == 200:
+            json = req.json()["data"]
+            return User(json)
+
+    def get_user_settings(self, id_: int = 0) -> UserSettings:
+        if id_ == 0 and self.login_success:
+            id_ = "me"
+        req = self.session.get("{}/user/{}/settings".format(self.api, id_))
+
+        if req.status_code == 200:
+            json = req.json()["data"]
+            return UserSettings(json)
+
+    def get_user_list(self, id_: int = 0, follow_type: int = 0, hentai_mode: int = 1) -> []:
+        p = {"hentai": hentai_mode}
+        if follow_type != 0:
+            p["type"] = follow_type
+        if id_ == 0 and self.login_success:
+            id_ = "me"
+        req = self.session.get("{}/user/{}/followed-manga".format(self.api, id_), params=p)
+
+        if req.status_code == 200:
+            json = req.json()["data"]
+            if json:
+                return [UserFollow(x) for x in json]
+
+    def get_user_updates(self, id_: int = 0, follow_type: int = 0, hentai_mode: int = 1, delayed=False,
+                         include_blocked=False) -> []:
+        p = {"type": follow_type, "hentai": hentai_mode, "delayed": delayed, "blockgroups": include_blocked}
+        if id_ == 0 and self.login_success:
+            id_ = "me"
+        req = self.session.get("{}/user/{}/followed-updates".format(self.api, id_), params=p)
+
+        if req.status_code == 200:
+            json = req.json()["data"]["chapters"]
+            if json:
+                return [UserUpdate(x) for x in json]
+
+    def get_user_ratings(self, id_: int = 0) -> {}:
+        if id_ == 0 and self.login_success:
+            id_ = "me"
+        req = self.session.get("{}/user/{}/ratings".format(self.api, id_))
+
+        if req.status_code == 200:
+            json = req.json()["data"]
+            if json:
+                return {x["mangaId"]: x["rating"] for x in json}
+
+    def get_user_manga(self, id_: int, uid: int = 0) -> UserManga:
+        if uid == 0 and self.login_success:
+            uid = "me"
+        req = self.session.get("{}/user/{}/manga/{}".format(self.api, uid, id_))
+
+        if req.status_code == 200:
+            json = req.json()["data"]
+            return UserManga(json)
