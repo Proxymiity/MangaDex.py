@@ -3,9 +3,9 @@ hentai_mode = {0: "disabled", 1: "show", 2: "only"}
 
 class User:
     __slots__ = ("id", "username", "level_id", "joined", "last_seen", "website", "bio", "views", "uploads", "premium",
-                 "md_ah", "avatar")
+                 "md_ah", "avatar", "chapters_uploaded", "groups")
 
-    def __init__(self, data):
+    def __init__(self, data, chaps=None, groups=None):
         self.id = data["id"]
         self.username = data["username"]
         self.level_id = data["levelId"]
@@ -18,6 +18,8 @@ class User:
         self.premium = data["premium"]
         self.md_ah = data["mdAtHome"]
         self.avatar = data["avatar"]
+        self.chapters_uploaded = chaps
+        self.groups = groups
 
 
 class UserSettings:

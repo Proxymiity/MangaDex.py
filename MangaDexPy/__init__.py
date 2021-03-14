@@ -66,14 +66,20 @@ class MangaDex:
             json = req.json()["data"]
             return Group(json)
 
-    def get_user(self, id_: int = 0) -> User:
+    def get_user(self, id_: int = 0, full=False) -> User:
+        p = None
+        if full:
+            p = {"include": "chapters"}
         if id_ == 0 and self.login_success:
             id_ = "me"
-        req = self.session.get("{}/user/{}".format(self.api, id_))
+        req = self.session.get("{}/user/{}".format(self.api, id_), params=p)
 
         if req.status_code == 200:
             json = req.json()["data"]
-            return User(json)
+            if full:
+                return User(json["user"], json["chapters"], json["groups"])
+            else:
+                return User(json)
 
     def get_user_settings(self, id_: int = 0) -> UserSettings:
         if id_ == 0 and self.login_success:
