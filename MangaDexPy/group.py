@@ -1,3 +1,6 @@
+from .partial import PartialChapter, PartialGroup
+
+
 class Group:
     __slots__ = ("id", "name", "names", "language", "leader", "members", "desc", "website", "discord", "irc_server",
                  "irc_channel", "email", "founded", "follows", "views", "chapters", "thread_id", "thread_posts",
@@ -27,5 +30,5 @@ class Group:
         self.delay = data["delay"]
         self.last_update = data["lastUpdated"]
         self.banner = data["banner"]
-        self.chapters_uploaded = chaps
-        self.collabs = groups
+        self.chapters_uploaded = [PartialChapter(x) for x in chaps or []]
+        self.collabs = [PartialGroup(x) for x in groups or []]

@@ -1,3 +1,6 @@
+from .partial import PartialGroup
+
+
 class Chapter:
     __slots__ = ("id", "hash", "manga_id", "manga_title", "volume", "chapter", "title", "language", "groups",
                  "uploader", "timestamp", "thread_id", "views", "pages", "server", "fallback_server", "server_status",
@@ -12,7 +15,7 @@ class Chapter:
         self.chapter = data["chapter"]
         self.title = data["title"]
         self.language = data["language"]
-        self.groups = data["groups"]
+        self.groups = [PartialGroup(x) for x in data["groups"]]
         self.uploader = data["uploader"]
         self.timestamp = data["timestamp"]
         self.thread_id = data["threadId"]

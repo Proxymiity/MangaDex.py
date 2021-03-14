@@ -1,3 +1,4 @@
+from .partial import PartialChapter, PartialGroup
 types = {0: None, 1: "Shounen", 2: "Seinen", 3: "Josei", 4: "Shoujo"}
 statuses = {0: None, 1: "ongoing", 2: "completed"}
 
@@ -29,8 +30,8 @@ class Manga:
         self.comments = data["comments"]
         self.last_upload = data["lastUploaded"]
         self.cover = data["mainCover"]
-        self.chapters = chaps
-        self.groups = groups
+        self.chapters = [PartialChapter(x) for x in chaps or []]
+        self.groups = [PartialGroup(x) for x in groups or []]
         self.session = session
 
     def get_tags(self):

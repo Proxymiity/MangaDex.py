@@ -1,3 +1,4 @@
+from .partial import PartialChapter, PartialGroup
 hentai_mode = {0: "disabled", 1: "show", 2: "only"}
 
 
@@ -18,8 +19,8 @@ class User:
         self.premium = data["premium"]
         self.md_ah = data["mdAtHome"]
         self.avatar = data["avatar"]
-        self.chapters_uploaded = chaps
-        self.groups = groups
+        self.chapters_uploaded = [PartialChapter(x) for x in chaps or []]
+        self.groups = [PartialGroup(x) for x in groups or []]
 
 
 class UserSettings:
