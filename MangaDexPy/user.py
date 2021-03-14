@@ -24,12 +24,12 @@ class User:
 
 
 class UserSettings:
-    __slots__ = ("id", "hentai", "latest_update", "show_moderated_posts", "show_unavailable_chapters",
+    __slots__ = ("id", "hentai_mode", "latest_update", "show_moderated_posts", "show_unavailable_chapters",
                  "whitelisted_languages", "blacklisted_tags")
 
     def __init__(self, data):
         self.id = data["id"]
-        self.hentai = hentai_mode[data["hentaiMode"]]
+        self.hentai_mode = hentai_mode[data["hentaiMode"]]
         self.latest_update = data["latestUpdates"]
         self.show_moderated_posts = data["showModeratedPosts"]
         self.show_unavailable_chapters = data["showUnavailableChapters"]

@@ -3,7 +3,7 @@ from .partial import PartialChapter, PartialGroup
 
 class Group:
     __slots__ = ("id", "name", "names", "language", "leader", "members", "desc", "website", "discord", "irc_server",
-                 "irc_channel", "email", "founded", "follows", "views", "chapters", "thread_id", "thread_posts",
+                 "irc_channel", "email", "founded_on", "follows", "views", "chapters", "thread_id", "thread_posts",
                  "locked", "inactive", "delay", "last_update", "banner", "chapters_uploaded", "collabs")
 
     def __init__(self, data, chaps=None, groups=None):
@@ -19,7 +19,7 @@ class Group:
         self.irc_server = data["ircServer"]
         self.irc_channel = data["ircChannel"]
         self.email = data["email"]
-        self.founded = data["founded"]
+        self.founded_on = data["founded"]
         self.follows = data["follows"]
         self.views = data["views"]
         self.chapters = data["chapters"]
