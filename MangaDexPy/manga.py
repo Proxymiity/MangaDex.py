@@ -1,4 +1,5 @@
 from .partial import PartialChapter, PartialGroup
+from .relation import Relation
 types = {0: None, 1: "Shounen", 2: "Seinen", 3: "Josei", 4: "Shoujo"}
 statuses = {0: None, 1: "ongoing", 2: "completed"}
 
@@ -23,7 +24,7 @@ class Manga:
         self.last_volume = data["lastVolume"]
         self.hentai = data["isHentai"]
         self.links = data["links"]
-        self.relations = data["relations"]
+        self.relations = [Relation(x) for x in data["relations"] or []]
         self.ratings = data["rating"]
         self.views = data["views"]
         self.follows = data["follows"]
