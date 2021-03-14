@@ -40,4 +40,4 @@ class Manga:
         return [tags[x] for x in tags if int(x) in self.tag_ids]
 
     def get_covers(self):
-        return self.session.get("https://api.mangadex.org/v2/manga/{}/covers".format(self.id)).json()["data"]
+        return self.session.get(f"https://api.mangadex.org/v2/manga/{self.id}/covers").json()["data"]

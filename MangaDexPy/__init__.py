@@ -22,7 +22,7 @@ class MangaDex:
         self.login_success = False
 
     def login(self, username: str, password: str):
-        url = "{}/ajax/actions.ajax.php?function=login".format(self.url)
+        url = f"{self.url}/ajax/actions.ajax.php?function=login"
         credentials = {"login_username": username, "login_password": password}
         headers = {
             "method": "POST",
@@ -54,7 +54,7 @@ class MangaDex:
         p = None
         if full:
             p = {"include": "chapters"}
-        req = self.session.get("{}/manga/{}".format(self.api, id_), params=p)
+        req = self.session.get(f"{self.api}/manga/{id_}", params=p)
 
         if req.status_code == 200:
             json = req.json()["data"]
@@ -67,7 +67,7 @@ class MangaDex:
 
     def get_chapter(self, id_: int, low_quality=False, mark_read=False) -> Chapter:
         p = {"saver": low_quality, "mark_read": mark_read}
-        req = self.session.get("{}/chapter/{}".format(self.api, id_), params=p)
+        req = self.session.get(f"{self.api}/chapter/{id_}", params=p)
 
         if req.status_code == 200:
             return Chapter(req.json()["data"], self.session)
@@ -78,7 +78,7 @@ class MangaDex:
         p = None
         if full:
             p = {"include": "chapters"}
-        req = self.session.get("{}/group/{}".format(self.api, id_), params=p)
+        req = self.session.get(f"{self.api}/group/{id_}", params=p)
 
         if req.status_code == 200:
             json = req.json()["data"]
@@ -95,7 +95,7 @@ class MangaDex:
             p = {"include": "chapters"}
         if id_ == 0 and self.login_success:
             id_ = "me"
-        req = self.session.get("{}/user/{}".format(self.api, id_), params=p)
+        req = self.session.get(f"{self.api}/user/{id_}", params=p)
 
         if req.status_code == 200:
             json = req.json()["data"]
@@ -109,7 +109,7 @@ class MangaDex:
     def get_user_settings(self, id_: int = 0) -> UserSettings:
         if id_ == 0 and self.login_success:
             id_ = "me"
-        req = self.session.get("{}/user/{}/settings".format(self.api, id_))
+        req = self.session.get(f"{self.api}/user/{id_}/settings")
 
         if req.status_code == 200:
             json = req.json()["data"]
@@ -123,7 +123,7 @@ class MangaDex:
             p["type"] = follow_type
         if id_ == 0 and self.login_success:
             id_ = "me"
-        req = self.session.get("{}/user/{}/followed-manga".format(self.api, id_), params=p)
+        req = self.session.get(f"{self.api}/user/{id_}/followed-manga", params=p)
 
         if req.status_code == 200:
             json = req.json()["data"]
@@ -137,7 +137,7 @@ class MangaDex:
         p = {"type": follow_type, "hentai": hentai_mode, "delayed": delayed, "blockgroups": include_blocked}
         if id_ == 0 and self.login_success:
             id_ = "me"
-        req = self.session.get("{}/user/{}/followed-updates".format(self.api, id_), params=p)
+        req = self.session.get(f"{self.api}/user/{id_}/followed-updates", params=p)
 
         if req.status_code == 200:
             json = req.json()["data"]["chapters"]
@@ -149,7 +149,7 @@ class MangaDex:
     def get_user_ratings(self, id_: int = 0) -> {}:
         if id_ == 0 and self.login_success:
             id_ = "me"
-        req = self.session.get("{}/user/{}/ratings".format(self.api, id_))
+        req = self.session.get(f"{self.api}/user/{id_}/ratings")
 
         if req.status_code == 200:
             json = req.json()["data"]
@@ -161,7 +161,7 @@ class MangaDex:
     def get_user_manga(self, id_: int, uid: int = 0) -> UserFollow:
         if uid == 0 and self.login_success:
             uid = "me"
-        req = self.session.get("{}/user/{}/manga/{}".format(self.api, uid, id_))
+        req = self.session.get(f"{self.api}/user/{uid}/manga/{id_}")
 
         if req.status_code == 200:
             json = req.json()["data"]
@@ -177,7 +177,7 @@ class MangaDex:
 
         for y in lists:
             p = {"chapters": y, "read": read}
-            reqs.append(self.session.post("{}/user/{}/marker".format(self.api, id_), json=p))
+            reqs.append(self.session.post(f"{self.api}/user/{id_}/marker", json=p))
             time.sleep(1)
 
         if reqs[-1].status_code == 200:

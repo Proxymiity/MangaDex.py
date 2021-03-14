@@ -40,7 +40,7 @@ class Chapter:
 
     def refresh(self):
         p = {"saver": "data-saver" in self.server, "mark_read": False}
-        req = self.session.get("https://api.mangadex.org/v2/chapter/{}".format(self.id), params=p)
+        req = self.session.get(f"https://api.mangadex.org/v2/chapter/{self.id}", params=p)
         if req.status_code == 200:
             data = req.json()["data"]
             self.pages = data["pages"]
