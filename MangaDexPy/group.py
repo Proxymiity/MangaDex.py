@@ -1,9 +1,9 @@
 class Group:
     __slots__ = ("id", "name", "names", "language", "leader", "members", "desc", "website", "discord", "irc_server",
                  "irc_channel", "email", "founded", "follows", "views", "chapters", "thread_id", "thread_posts",
-                 "locked", "inactive", "delay", "last_update", "banner")
+                 "locked", "inactive", "delay", "last_update", "banner", "chapters_uploaded", "collabs")
 
-    def __init__(self, data):
+    def __init__(self, data, chaps=None, groups=None):
         self.id = data["id"]
         self.name = data["name"]
         self.names = data["altNames"]
@@ -27,3 +27,5 @@ class Group:
         self.delay = data["delay"]
         self.last_update = data["lastUpdated"]
         self.banner = data["banner"]
+        self.chapters_uploaded = chaps
+        self.collabs = groups

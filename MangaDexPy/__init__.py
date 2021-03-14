@@ -59,12 +59,18 @@ class MangaDex:
         if req.status_code == 200:
             return Chapter(req.json()["data"], self.session)
 
-    def get_group(self, id_: int) -> Group:
-        req = self.session.get("{}/group/{}".format(self.api, id_))
+    def get_group(self, id_: int, full=False) -> Group:
+        p = None
+        if full:
+            p = {"include": "chapters"}
+        req = self.session.get("{}/group/{}".format(self.api, id_), params=p)
 
         if req.status_code == 200:
             json = req.json()["data"]
-            return Group(json)
+            if full:
+                return Group(json["group"], json["chapters"], json["groups"])
+            else:
+                return Group(json)
 
     def get_user(self, id_: int = 0, full=False) -> User:
         p = None
