@@ -1,5 +1,6 @@
 import requests
 from .manga import Manga
+from .chapter import Chapter
 
 
 class MangaDex:
@@ -47,3 +48,10 @@ class MangaDex:
                 return Manga(json["manga"], self.session, json["chapters"], json["groups"])
             else:
                 return Manga(json, self.session)
+
+    def get_chapter(self, id_: int, low_quality=False, mark_read=False) -> Chapter:
+        p = {"saver": low_quality, "mark_read": mark_read}
+        req = self.session.get("{}/chapter/{}".format(self.api, id_), params=p)
+
+        if req.status_code == 200:
+            return Chapter(req.json()["data"], self.session)
