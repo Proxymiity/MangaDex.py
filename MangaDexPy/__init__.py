@@ -6,12 +6,19 @@ from .group import Group
 from .user import User, UserSettings, UserFollow, UserUpdate
 
 
+class APIError(Exception):
+    pass
+
+
+class LoginError(Exception):
+    pass
+
+
 class MangaDex:
     def __init__(self):
         self.url = "https://mangadex.org"
         self.api = "https://api.mangadex.org/v2"
         self.session = requests.Session()
-        self.user = None
         self.login_success = False
 
     def login(self, username: str, password: str):
@@ -34,10 +41,14 @@ class MangaDex:
         post = self.session.post(url, data=credentials, headers=headers)
         if not post.cookies.get("mangadex_session"):
             print("Invalid MangaDex credentials. Some API calls will be unavailable.")
-            return False
+            raise LoginError("Invalid credentials.")
         else:
             self.login_success = True
             return True
+
+    def logout(self):
+        self.session = requests.Session()
+        self.login_success = False
 
     def get_manga(self, id_: int, full=False) -> Manga:
         p = None
@@ -51,6 +62,8 @@ class MangaDex:
                 return Manga(json["manga"], self.session, json["chapters"], json["groups"])
             else:
                 return Manga(json, self.session)
+        else:
+            self.raise_err(req)
 
     def get_chapter(self, id_: int, low_quality=False, mark_read=False) -> Chapter:
         p = {"saver": low_quality, "mark_read": mark_read}
@@ -58,6 +71,8 @@ class MangaDex:
 
         if req.status_code == 200:
             return Chapter(req.json()["data"], self.session)
+        else:
+            self.raise_err(req)
 
     def get_group(self, id_: int, full=False) -> Group:
         p = None
@@ -71,6 +86,8 @@ class MangaDex:
                 return Group(json["group"], json["chapters"], json["groups"])
             else:
                 return Group(json)
+        else:
+            self.raise_err(req)
 
     def get_user(self, id_: int = 0, full=False) -> User:
         p = None
@@ -86,6 +103,8 @@ class MangaDex:
                 return User(json["user"], json["chapters"], json["groups"])
             else:
                 return User(json)
+        else:
+            self.raise_err(req)
 
     def get_user_settings(self, id_: int = 0) -> UserSettings:
         if id_ == 0 and self.login_success:
@@ -95,6 +114,8 @@ class MangaDex:
         if req.status_code == 200:
             json = req.json()["data"]
             return UserSettings(json)
+        else:
+            self.raise_err(req)
 
     def get_user_list(self, id_: int = 0, follow_type: int = 0, hentai_mode: int = 1) -> []:
         p = {"hentai": hentai_mode}
@@ -108,6 +129,8 @@ class MangaDex:
             json = req.json()["data"]
             if json:
                 return [UserFollow(x) for x in json]
+        else:
+            self.raise_err(req)
 
     def get_user_updates(self, id_: int = 0, follow_type: int = 0, hentai_mode: int = 1, delayed=False,
                          include_blocked=False) -> []:
@@ -120,6 +143,8 @@ class MangaDex:
             json = req.json()["data"]["chapters"]
             if json:
                 return [UserUpdate(x) for x in json]
+        else:
+            self.raise_err(req)
 
     def get_user_ratings(self, id_: int = 0) -> {}:
         if id_ == 0 and self.login_success:
@@ -130,6 +155,8 @@ class MangaDex:
             json = req.json()["data"]
             if json:
                 return {x["mangaId"]: x["rating"] for x in json}
+        else:
+            self.raise_err(req)
 
     def get_user_manga(self, id_: int, uid: int = 0) -> UserFollow:
         if uid == 0 and self.login_success:
@@ -139,6 +166,8 @@ class MangaDex:
         if req.status_code == 200:
             json = req.json()["data"]
             return UserFollow(json)
+        else:
+            self.raise_err(req)
 
     def set_user_markers(self, mangas: list, read: bool, id_: int = 0):
         reqs = []
@@ -153,3 +182,10 @@ class MangaDex:
 
         if reqs[-1].status_code == 200:
             return True
+        else:
+            self.raise_err(reqs[-1])
+
+    def raise_err(self, req):
+        print("There was an error while handling this API Request. Please make sure that you're logged in"
+              " if you're trying to access personal data. Refer to the docs for more information.")
+        raise APIError(f"API Request Error. Status={req.status_code} LoggedIn={self.login_success}")
