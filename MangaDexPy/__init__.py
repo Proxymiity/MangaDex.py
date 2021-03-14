@@ -1,4 +1,5 @@
 import requests
+import time
 from .manga import Manga
 from .chapter import Chapter
 from .group import Group
@@ -126,3 +127,17 @@ class MangaDex:
         if req.status_code == 200:
             json = req.json()["data"]
             return UserManga(json)
+
+    def set_user_markers(self, mangas: list, read: bool, id_: int = 0):
+        reqs = []
+        lists = [mangas[x:x + 100] for x in range(0, len(mangas), 100)]
+        if id_ == 0 and self.login_success:
+            id_ = "me"
+
+        for y in lists:
+            p = {"chapters": y, "read": read}
+            reqs.append(self.session.post("{}/user/{}/marker".format(self.api, id_), json=p))
+            time.sleep(1)
+
+        if reqs[-1].status_code == 200:
+            return True
