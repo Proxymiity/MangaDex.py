@@ -1,6 +1,6 @@
 class Chapter:
     __slots__ = ("id", "hash", "manga_id", "manga_title", "volume", "chapter", "title", "language", "groups",
-                 "uploader", "timestamp", "thread", "views", "pages", "server", "fallback_server", "server_status",
+                 "uploader", "timestamp", "thread_id", "views", "pages", "server", "fallback_server", "server_status",
                  "session")
 
     def __init__(self, data, session):
@@ -15,7 +15,7 @@ class Chapter:
         self.groups = data["groups"]
         self.uploader = data["uploader"]
         self.timestamp = data["timestamp"]
-        self.thread = data["threadId"]
+        self.thread_id = data["threadId"]
         self.views = data["views"]
         self.pages = data["pages"]
         self.server = data["server"]
