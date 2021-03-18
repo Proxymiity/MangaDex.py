@@ -38,7 +38,18 @@ class Manga:
 
     def get_tags(self):
         tags = self.session.get("https://api.mangadex.org/v2/tag").json()["data"]
-        return [tags[x] for x in tags if int(x) in self.tag_ids]
+        return [MangaTag(tags[x]) for x in tags if int(x) in self.tag_ids]
 
     def get_covers(self):
         return self.session.get(f"https://api.mangadex.org/v2/manga/{self.id}/covers").json()["data"]
+
+
+class MangaTag:
+    """Represents a MangaDex Manga Tag."""
+    __slots__ = ("id", "name", "type", "desc")
+
+    def __init__(self, data):
+        self.id = data["id"]
+        self.name = data["name"]
+        self.type = data["group"]
+        self.desc = data["description"]
