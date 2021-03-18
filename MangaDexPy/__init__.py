@@ -7,7 +7,11 @@ from .user import User, UserSettings, UserFollow, UserUpdate
 
 
 class APIError(Exception):
-    pass
+    def __init__(self, r):
+        self.status = r.status_code
+        self.data = None
+        if not str(r.status_code).startswith("5"):
+            self.data = r.json()
 
 
 class LoginError(Exception):
@@ -41,8 +45,9 @@ class MangaDex:
         }
 
         post = self.session.post(url, data=credentials, headers=headers)
+        if not post.status_code == 200:
+            raise APIError(post)
         if not post.cookies.get("mangadex_session"):
-            print("Invalid MangaDex credentials. Some API calls will be unavailable.")
             raise LoginError("Invalid credentials.")
         else:
             self.login_success = True
@@ -67,7 +72,7 @@ class MangaDex:
             else:
                 return Manga(json, self.session)
         else:
-            self.raise_err(req)
+            raise APIError(req)
 
     def get_chapter(self, id_: int, low_quality=False, mark_read=False) -> Chapter:
         """Gets a chapter with a specific id."""
@@ -77,7 +82,7 @@ class MangaDex:
         if req.status_code == 200:
             return Chapter(req.json()["data"], self.session)
         else:
-            self.raise_err(req)
+            raise APIError(req)
 
     def get_group(self, id_: int, full=False) -> Group:
         """Gets a group with a specific id. Set full to True to populate Group.chapters_uploaded and Group.collabs."""
@@ -93,7 +98,7 @@ class MangaDex:
             else:
                 return Group(json)
         else:
-            self.raise_err(req)
+            raise APIError(req)
 
     def get_user(self, id_: int = 0, full=False) -> User:
         """Gets an user with a specific id. Set full to True to populate User.chapters_uploaded and User.groups."""
@@ -111,7 +116,7 @@ class MangaDex:
             else:
                 return User(json)
         else:
-            self.raise_err(req)
+            raise APIError(req)
 
     def get_user_settings(self, id_: int = 0) -> UserSettings:
         """Gets an user's settings. To retrieve another user's settings than the one currently logged in, you must
@@ -124,7 +129,7 @@ class MangaDex:
             json = req.json()["data"]
             return UserSettings(json)
         else:
-            self.raise_err(req)
+            raise APIError(req)
 
     def get_user_list(self, id_: int = 0, follow_type: int = 0, hentai_mode: int = 1) -> []:
         """Gets an user's manga list. This settings follows the privacy mode of user's MDList."""
@@ -140,7 +145,7 @@ class MangaDex:
             if json:
                 return [UserFollow(x) for x in json]
         else:
-            self.raise_err(req)
+            raise APIError(req)
 
     def get_user_updates(self, id_: int = 0, follow_type: int = 0, hentai_mode: int = 1, delayed=False,
                          include_blocked=False) -> []:
@@ -156,7 +161,7 @@ class MangaDex:
             if json:
                 return [UserUpdate(x) for x in json]
         else:
-            self.raise_err(req)
+            raise APIError(req)
 
     def get_user_ratings(self, id_: int = 0) -> {}:
         """Gets an user's ratings."""
@@ -169,7 +174,7 @@ class MangaDex:
             if json:
                 return {x["mangaId"]: x["rating"] for x in json}
         else:
-            self.raise_err(req)
+            raise APIError(req)
 
     def get_user_manga(self, id_: int, uid: int = 0) -> UserFollow:
         """Gets an user's manga from their MDList."""
@@ -181,7 +186,7 @@ class MangaDex:
             json = req.json()["data"]
             return UserFollow(json)
         else:
-            self.raise_err(req)
+            raise APIError(req)
 
     def set_user_markers(self, mangas: list, read: bool, id_: int = 0):
         """Sets chapters as read or unread."""
@@ -198,9 +203,4 @@ class MangaDex:
         if reqs[-1].status_code == 200:
             return True
         else:
-            self.raise_err(reqs[-1])
-
-    def raise_err(self, req):
-        print("There was an error while handling this API Request. Please make sure that you're logged in"
-              " if you're trying to access personal data. Refer to the docs for more information.")
-        raise APIError(f"API Request Error. Status={req.status_code} LoggedIn={self.login_success}")
+            raise APIError(reqs[-1])
