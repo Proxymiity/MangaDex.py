@@ -1,4 +1,4 @@
-from .partial import PartialChapter, PartialGroup
+from .partial import PartialChapter, PartialGroup, PartialUser
 
 
 class Group:
@@ -12,8 +12,8 @@ class Group:
         self.name = data["name"]
         self.names = data["altNames"]
         self.language = data["language"]
-        self.leader = data["leader"]
-        self.members = data["members"]
+        self.leader = PartialUser(data["leader"])
+        self.members = [PartialUser(x) for x in data["members"] or []]
         self.desc = data["description"]
         self.website = data["website"]
         self.discord = data["discord"]

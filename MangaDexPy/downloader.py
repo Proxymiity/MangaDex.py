@@ -13,9 +13,7 @@ def dl_page(chapter: Chapter, page, path, fallback=False):
 def dl_chapter(chapter: Chapter, path, fallback=False, time_controller: int = 1):
     """Downloads an entire chapter."""
     chapter.refresh()
-    y = 0
     for x in chapter.pages:
         dl_page(chapter, x, path, fallback)
         if time_controller:
             time.sleep(time_controller)
-        y += 1

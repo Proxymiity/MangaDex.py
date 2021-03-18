@@ -1,9 +1,11 @@
 import requests
 import time
-from .manga import Manga
+from .manga import Manga, MangaTag
 from .chapter import Chapter
 from .group import Group
 from .user import User, UserSettings, UserFollow, UserUpdate
+from .partial import PartialChapter, PartialGroup, PartialUser
+from .relation import Relation
 
 
 class APIError(Exception):

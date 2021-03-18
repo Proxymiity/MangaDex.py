@@ -26,3 +26,12 @@ class PartialGroup:
     def __init__(self, data):
         self.id = data["id"]
         self.name = data["name"]
+
+
+class PartialUser:
+    """Represents a MangaDex User, but with reduced info."""
+    __slots__ = ("id", "username")
+
+    def __init__(self, data):
+        self.id = data["id"]
+        self.username = data["name"]
