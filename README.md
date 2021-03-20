@@ -1,5 +1,7 @@
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/ca6509334c4e425f8d9d61083715cacb)](https://www.codacy.com/gh/Proxymiity/MangaDex.py/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Proxymiity/MangaDex.py&amp;utm_campaign=Badge_Grade)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Proxymiity_MangaDex.py&metric=alert_status)](https://sonarcloud.io/dashboard?id=Proxymiity_MangaDex.py)
+[![MangaDex API Status](https://img.shields.io/website-up-down-green-red/https/api.mangadex.org?label=mangadex%20api%20status)](https://api.mangadex.org/)
+[![MangaDex Website Status](https://img.shields.io/website-up-down-green-red/https/mangadex.org?label=mangadex%20website%20status)](https://mangadex.org/)
 
 # MangaDex.py
 
