@@ -12,8 +12,10 @@ class APIError(Exception):
     def __init__(self, r):
         self.status = r.status_code
         self.data = None
-        if not str(r.status_code).startswith("5"):
+        try:
             self.data = r.json()
+        except Exception as e:
+            print(e)
 
 
 class LoginError(Exception):
