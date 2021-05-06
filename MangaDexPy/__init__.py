@@ -1,5 +1,6 @@
 import requests
 import time
+import json
 from .manga import Manga, MangaTag
 from .chapter import Chapter
 from .group import Group
@@ -25,42 +26,31 @@ class LoginError(Exception):
 class MangaDex:
     """Represents the MangaDex API Client."""
     def __init__(self):
-        self.url = "https://mangadex.org"
-        self.api = "https://api.mangadex.org/v2"
+        self.api = "https://api.mangadex.org"
         self.session = requests.Session()
         self.login_success = False
+        self.session_token = None
+        self.refresh_token = None
 
     def login(self, username: str, password: str):
         """Logs in to MangaDex using an username and a password."""
-        url = f"{self.url}/ajax/actions.ajax.php?function=login"
-        credentials = {"login_username": username, "login_password": password}
-        headers = {
-            "method": "POST",
-            "path": "/ajax/actions.ajax.php?function=login",
-            "scheme": "https",
-            "Accept": "*/*",
-            "accept-encoding": "gzip, deflate, br",
-            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-            "origin": self.url,
-            "sec-fetch-dest": "empty",
-            "sec-fetch-mode": "cors",
-            "sec-fetch-site": "same-origin",
-            "x-requested-with": "XMLHttpRequest",
-        }
-
-        post = self.session.post(url, data=credentials, headers=headers)
-        if not post.status_code == 200:
-            raise APIError(post)
-        if not post.cookies.get("mangadex_session"):
+        url = f"{self.api}/auth/login"
+        credentials = {"username": username, "password": password}
+        post = self.session.post(url, data=json.dumps(credentials))
+        if post.status_code == 401:
             raise LoginError("Invalid credentials.")
+        elif not post.status_code == 200:
+            raise APIError(post)
         else:
+            resp = post.json()
             self.login_success = True
+            self.session_token = resp["token"]["session"]
+            self.refresh_token = resp["token"]["refresh"]
             return True
 
     def logout(self):
         """Resets the current session."""
-        self.session = requests.Session()
-        self.login_success = False
+        self.__init__()
 
     def get_manga(self, id_: int, full=False) -> Manga:
         """Gets a manga with a specific id. Set full to True to populate Manga.chapters and Manga.groups"""
