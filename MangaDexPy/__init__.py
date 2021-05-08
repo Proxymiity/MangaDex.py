@@ -19,7 +19,11 @@ class APIError(Exception):
             print(e)
 
 
-class LoginError(Exception):
+class NoContentError(APIError):
+    pass
+
+
+class LoginError(APIError):
     pass
 
 
@@ -38,7 +42,7 @@ class MangaDex:
         credentials = {"username": username, "password": password}
         post = self.session.post(url, data=json.dumps(credentials))
         if post.status_code == 401:
-            raise LoginError("Invalid credentials.")
+            raise LoginError(post)
         elif not post.status_code == 200:
             raise APIError(post)
         else:
