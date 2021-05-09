@@ -56,12 +56,16 @@ class MangaDex:
         """Resets the current session."""
         self.__init__()
 
-    def get_manga(self, id_: int, full=False) -> Manga:
-        """Gets a manga with a specific id. Set full to True to populate Manga.chapters and Manga.groups"""
-        p = None
-        if full:
-            p = {"include": "chapters"}
-        req = self.session.get(f"{self.api}/manga/{id_}", params=p)
+    def get_manga(self, id_: str,) -> Manga:
+        """Gets a manga with a specific uuid."""
+        req = self.session.get(f"{self.api}/manga/{id_}")
+        if req.status_code == 200:
+            resp = req.json()
+            return Manga(resp["data"], resp["relationships"], self)
+        elif req.status_code == 204:
+            raise NoContentError(req)
+        else:
+            raise APIError(req)
 
         if req.status_code == 200:
             json = req.json()["data"]

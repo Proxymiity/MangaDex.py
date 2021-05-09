@@ -1,55 +1,39 @@
-from .partial import PartialChapter, PartialGroup
-from .relation import Relation
-types = {0: None, 1: "Shounen", 2: "Seinen", 3: "Josei", 4: "Shoujo"}
-statuses = {0: None, 1: "ongoing", 2: "completed"}
-
-
 class Manga:
     """Represents a MangaDex Manga."""
-    __slots__ = ("id", "title", "titles", "desc", "artist", "author", "language", "status", "type", "tag_ids",
-                 "last_chapter", "last_volume", "hentai", "links", "relations", "ratings", "views", "follows",
-                 "comments", "last_upload", "cover", "chapters", "groups", "session")
+    __slots__ = ("id", "title", "titles", "desc", "locked", "links", "language", "last_volume", "last_chapter",
+                 "type", "status", "year", "content", "tags", "created_at", "updated_at", "author", "artist",
+                 "chapters", "client")
 
-    def __init__(self, data, session, chaps=None, groups=None):
+    def __init__(self, data, rel, client):
         self.id = data["id"]
-        self.title = data["title"]
-        self.titles = data["altTitles"]
-        self.desc = data["description"]
-        self.artist = data["artist"]
-        self.author = data["author"]
-        self.language = data["publication"]["language"]
-        self.status = statuses[data["publication"]["status"]]
-        self.type = types[data["publication"]["demographic"]]
-        self.tag_ids = data["tags"]
-        self.last_chapter = data["lastChapter"]
-        self.last_volume = data["lastVolume"]
-        self.hentai = data["isHentai"]
-        self.links = data["links"]
-        self.relations = [Relation(x) for x in data["relations"] or []]
-        self.ratings = data["rating"]
-        self.views = data["views"]
-        self.follows = data["follows"]
-        self.comments = data["comments"]
-        self.last_upload = data["lastUploaded"]
-        self.cover = data["mainCover"]
-        self.chapters = [PartialChapter(x) for x in chaps or []]
-        self.groups = [PartialGroup(x) for x in groups or []]
-        self.session = session
+        self.title = data["attributes"]["title"]
+        self.titles = data["attributes"]["altTitles"]
+        self.desc = data["attributes"]["description"]
+        self.locked = data["attributes"]["isLocked"]
+        self.links = data["attributes"]["links"]
+        self.language = data["attributes"]["originalLanguage"]
+        self.last_volume = data["attributes"]["lastVolume"]
+        self.last_chapter = data["attributes"]["lastChapter"]
+        self.type = data["attributes"]["publicationDemographic"]
+        self.status = data["attributes"]["status"]
+        self.year = data["attributes"]["year"]
+        self.content = data["attributes"]["contentRating"]
+        self.tags = [MangaTag(x) for x in data["attributes"]["tags"]]
+        self.created_at = data["attributes"]["createdAt"]
+        self.updated_at = data["attributes"]["updatedAt"]
+        self.author = [x["id"] for x in rel if x["type"] == "author"]
+        self.artist = [x["id"] for x in rel if x["type"] == "artist"]
+        self.chapters = [x["id"] for x in rel if x["type"] == "chapter"]
+        self.client = client
 
-    def get_tags(self):
-        tags = self.session.get("https://api.mangadex.org/v2/tag").json()["data"]
-        return [MangaTag(tags[x]) for x in tags if int(x) in self.tag_ids]
-
-    def get_covers(self):
-        return self.session.get(f"https://api.mangadex.org/v2/manga/{self.id}/covers").json()["data"]
+    def get_chapters(self):
+        return self.client.get_chapters(self.chapters)
 
 
 class MangaTag:
     """Represents a MangaDex Manga Tag."""
-    __slots__ = ("id", "name", "type", "desc")
+    __slots__ = ("id", "name")
 
     def __init__(self, data):
         self.id = data["id"]
-        self.name = data["name"]
-        self.type = data["group"]
-        self.desc = data["description"]
+        self.name = data["attributes"]["name"]
