@@ -27,6 +27,10 @@ class LoginError(APIError):
     pass
 
 
+class NoResultsError(Exception):
+    pass
+
+
 class MangaDex:
     """Represents the MangaDex API Client."""
     def __init__(self):
@@ -67,14 +71,33 @@ class MangaDex:
         else:
             raise APIError(req)
 
+    def get_chapter(self, id_: int, low_quality=False, mark_read=False) -> Chapter:
+        """Gets a chapter with a specific id."""
+        p = {"saver": low_quality, "mark_read": mark_read}
+        req = self.session.get(f"{self.api}/chapter/{id_}", params=p)
+
         if req.status_code == 200:
-            json = req.json()["data"]
-            if full:
-                return Manga(json["manga"], self.session, json["chapters"], json["groups"])
-            else:
-                return Manga(json, self.session)
+            return Chapter(req.json()["data"], self.session)
         else:
             raise APIError(req)
+
+    def get_chapters(self, ids: list) -> []:
+        """Gets chapters with specific uuids."""
+        chapters = []
+        sub = [ids[x:x+100] for x in range(0, len(ids), 100)]
+        for s in sub:
+            p = {"ids[]": s}
+            req = self.session.get(f"{self.api}/chapter", params=p)
+            if req.status_code == 200:
+                resp = req.json()
+                chapters += [x for x in resp["results"]]
+            elif req.status_code == 204:
+                pass
+            else:
+                raise APIError(req)
+        if not sub or not chapters:
+            raise NoResultsError()
+        return [Chapter(x["data"], x["relationships"], self) for x in chapters]
 
     def get_chapter(self, id_: int, low_quality=False, mark_read=False) -> Chapter:
         """Gets a chapter with a specific id."""
