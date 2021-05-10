@@ -6,7 +6,7 @@ from .chapter import Chapter
 from .group import Group
 from .user import User, UserSettings, UserFollow, UserUpdate
 from .partial import PartialChapter, PartialGroup, PartialUser
-from .relation import Relation
+from .network import NetworkChapter
 
 
 class APIError(Exception):
@@ -35,6 +35,7 @@ class MangaDex:
     """Represents the MangaDex API Client."""
     def __init__(self):
         self.api = "https://api.mangadex.org"
+        self.net_api = "https://api.mangadex.network"
         self.session = requests.Session()
         self.login_success = False
         self.session_token = None
@@ -99,13 +100,22 @@ class MangaDex:
             raise NoResultsError()
         return [Chapter(x["data"], x["relationships"], self) for x in chapters]
 
-    def get_chapter(self, id_: int, low_quality=False, mark_read=False) -> Chapter:
-        """Gets a chapter with a specific id."""
-        p = {"saver": low_quality, "mark_read": mark_read}
-        req = self.session.get(f"{self.api}/chapter/{id_}", params=p)
-
+    def read_chapter(self, ch: Chapter, force_443: bool = False) -> NetworkChapter:
+        """Pulls a chapter from the MD@H Network."""
+        data = {"forcePort443": force_443}
+        req = self.session.get(f"{self.api}/at-home/server/{ch.id}", params=data)
         if req.status_code == 200:
-            return Chapter(req.json()["data"], self.session)
+            resp = req.json()
+            return NetworkChapter(ch, resp["baseUrl"], self)
+        else:
+            raise APIError(req)
+
+    def network_report(self, url, success, cache_header, req_bytes, req_duration) -> bool:
+        """Reports statistics back to the MD@H Network."""
+        data = {"url": url, "success": success, "cached": cache_header, "bytes": req_bytes, "duration": req_duration}
+        req = self.session.post(f"{self.net_api}/report", data=json.dumps(data))
+        if req.status_code == 200:
+            return True
         else:
             raise APIError(req)
 
