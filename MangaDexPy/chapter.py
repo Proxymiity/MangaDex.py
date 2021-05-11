@@ -23,5 +23,5 @@ class Chapter:
         self.uploader = [x["id"] for x in rel if x["type"] == "user"]
         self.client = client
 
-    def get_md_network(self):
-        return self.client.read_chapter(self)
+    def get_md_network(self, force_443: bool = False):
+        return self.client.read_chapter(self, force_443)
