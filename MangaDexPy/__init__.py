@@ -72,13 +72,14 @@ class MangaDex:
         else:
             raise APIError(req)
 
-    def get_chapter(self, id_: int, low_quality=False, mark_read=False) -> Chapter:
+    def get_chapter(self, id_: str) -> Chapter:
         """Gets a chapter with a specific id."""
-        p = {"saver": low_quality, "mark_read": mark_read}
-        req = self.session.get(f"{self.api}/chapter/{id_}", params=p)
-
+        req = self.session.get(f"{self.api}/chapter/{id_}")
         if req.status_code == 200:
-            return Chapter(req.json()["data"], self.session)
+            resp = req.json()
+            return Chapter(resp["data"], resp["relationships"], self)
+        elif req.status_code == 204:
+            pass
         else:
             raise APIError(req)
 
