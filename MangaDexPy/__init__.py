@@ -100,6 +100,31 @@ class MangaDex:
             raise NoResultsError()
         return [Chapter(x["data"], x["relationships"], self) for x in chapters]
 
+    def get_manga_chapters(self, mg: Manga) -> []:
+        """Gets chapters associated with a specific Manga."""
+        chapters = []
+        offset = 0
+        resp = None
+        remaining = True
+        while remaining:
+            p = {"limit": 500, "offset": offset}
+            req = self.session.get(f"{self.api}/manga/{mg.id}/feed", params=p)
+            if req.status_code == 200:
+                resp = req.json()
+                chapters += [x for x in resp["results"]]
+            elif req.status_code == 204:
+                pass
+            else:
+                raise APIError(req)
+            if resp is not None:
+                remaining = resp["total"] > offset + 500
+                offset += 500
+            else:
+                remaining = False
+        if not chapters:
+            raise NoResultsError()
+        return [Chapter(x["data"], x["relationships"], self) for x in chapters]
+
     def read_chapter(self, ch: Chapter, force_443: bool = False) -> NetworkChapter:
         """Pulls a chapter from the MD@H Network."""
         data = {"forcePort443": force_443}

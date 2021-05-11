@@ -23,11 +23,10 @@ class Manga:
         self.updated_at = data["attributes"]["updatedAt"]
         self.author = [x["id"] for x in rel if x["type"] == "author"]
         self.artist = [x["id"] for x in rel if x["type"] == "artist"]
-        self.chapters = [x["id"] for x in rel if x["type"] == "chapter"]
         self.client = client
 
     def get_chapters(self):
-        return self.client.get_chapters(self.chapters)
+        return self.client.get_manga_chapters(self)
 
 
 class MangaTag:
