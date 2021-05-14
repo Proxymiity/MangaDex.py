@@ -1,5 +1,6 @@
 import requests
 import json
+from typing import List, Dict, Union
 from .manga import Manga, MangaTag
 from .chapter import Chapter
 from .group import Group
@@ -46,25 +47,23 @@ class MangaDex:
         self.session_token = None
         self.refresh_token = None
 
-    def login(self, username: str, password: str):
+    def login(self, username: str, password: str) -> bool:
         """Logs in to MangaDex using an username and a password."""
-        url = f"{self.api}/auth/login"
         credentials = {"username": username, "password": password}
-        post = self.session.post(url, data=json.dumps(credentials))
+        post = self.session.post(f"{self.api}/auth/login", data=json.dumps(credentials))
         return self._store_token(post)
 
     def logout(self):
         """Resets the current session."""
         self.__init__()
 
-    def refresh(self, token=None):
+    def refresh(self, token=None) -> bool:
         """Refreshes the session using the refresh token."""
         if not self.login_success:
             raise NotLoggedInError
         token = token or self.refresh_token
-        url = f"{self.api}/auth/refresh"
         data = {"token": token}
-        post = self.session.post(url, data=json.dumps(data))
+        post = self.session.post(f"{self.api}/auth/refresh", data=json.dumps(data))
         return self._store_token(post)
 
     def _store_token(self, post):
@@ -80,7 +79,7 @@ class MangaDex:
             self.session.headers["Authorization"] = resp["token"]["session"]
             return True
 
-    def get_manga(self, id_: str,) -> Manga:
+    def get_manga(self, id_: str) -> Manga:
         """Gets a manga with a specific uuid."""
         req = self.session.get(f"{self.api}/manga/{id_}")
         if req.status_code == 200:
@@ -102,7 +101,7 @@ class MangaDex:
         else:
             raise APIError(req)
 
-    def get_chapters(self, ids: list) -> []:
+    def get_chapters(self, ids: list) -> List[Chapter]:
         """Gets chapters with specific uuids."""
         chapters = []
         sub = [ids[x:x+100] for x in range(0, len(ids), 100)]
@@ -120,7 +119,7 @@ class MangaDex:
             raise NoResultsError()
         return [Chapter(x["data"], x["relationships"], self) for x in chapters]
 
-    def get_manga_chapters(self, mg: Manga) -> []:
+    def get_manga_chapters(self, mg: Manga) -> List[Chapter]:
         """Gets chapters associated with a specific Manga."""
         return self._retrieve_pages(f"{self.api}/manga/{mg.id}/feed", Chapter)
 
@@ -134,7 +133,7 @@ class MangaDex:
         else:
             raise APIError(req)
 
-    def network_report(self, url, success, cache_header, req_bytes, req_duration) -> bool:
+    def network_report(self, url: str, success: bool, cache_header: bool, req_bytes: int, req_duration: int) -> bool:
         """Reports statistics back to the MD@H Network."""
         data = {"url": url, "success": success, "cached": cache_header, "bytes": req_bytes, "duration": req_duration}
         req = self.session.post(f"{self.net_api}/report", data=json.dumps(data))
@@ -167,13 +166,13 @@ class MangaDex:
         else:
             raise APIError(req)
 
-    def get_user_list(self, limit: int = 100) -> []:
+    def get_user_list(self, limit: int = 100) -> List[Manga]:
         """Gets the currently logged user's manga list."""
         if not self.login_success:
             raise NotLoggedInError
         return self._retrieve_pages(f"{self.api}/user/follows/manga", Manga, limit=limit, call_limit=100)
 
-    def get_user_updates(self, limit: int = 100) -> []:
+    def get_user_updates(self, limit: int = 100) -> List[Chapter]:
         """Gets the currently logged user's manga feed."""
         if not self.login_success:
             raise NotLoggedInError
@@ -190,11 +189,10 @@ class MangaDex:
         else:
             raise APIError(req)
 
-    def transform_ids(self, obj, content: list) -> []:
+    def transform_ids(self, obj: str, content: list) -> Dict:
         """Gets uuids from legacy ids."""
         data = {"type": obj, "ids": content}
-        url = f"{self.api}/legacy/mapping"
-        post = self.session.post(url, data=json.dumps(data))
+        post = self.session.post(f"{self.api}/legacy/mapping", data=json.dumps(data))
         if post.status_code == 200:
             resp = post.json()
             return {x["data"]["attributes"]["legacyId"]: x["data"]["attributes"]["newId"] for x in resp}
@@ -203,7 +201,7 @@ class MangaDex:
         else:
             raise APIError(post)
 
-    def search(self, obj: str, params: dict, limit: int = 0) -> []:
+    def search(self, obj: str, params: dict, limit: int = 0) -> List[Union[Manga, Chapter, Group, Author]]:
         """Searches an object."""
         if "limit" in params:
             params.pop("limit")
