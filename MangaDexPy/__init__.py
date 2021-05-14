@@ -145,19 +145,14 @@ class MangaDex:
         else:
             raise APIError(req)
 
-    def get_group(self, id_: int, full=False) -> Group:
-        """Gets a group with a specific id. Set full to True to populate Group.chapters_uploaded and Group.collabs."""
-        p = None
-        if full:
-            p = {"include": "chapters"}
-        req = self.session.get(f"{self.api}/group/{id_}", params=p)
-
+    def get_group(self, id_: str) -> Group:
+        """Gets a group with a specific id."""
+        req = self.session.get(f"{self.api}/group/{id_}")
         if req.status_code == 200:
-            json = req.json()["data"]
-            if full:
-                return Group(json["group"], json["chapters"], json["groups"])
-            else:
-                return Group(json)
+            resp = req.json()
+            return Group(resp["data"], self)
+        elif req.status_code == 204:
+            pass
         else:
             raise APIError(req)
 
