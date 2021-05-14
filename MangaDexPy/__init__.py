@@ -5,6 +5,7 @@ from .chapter import Chapter
 from .group import Group
 from .user import User
 from .network import NetworkChapter
+from .search import SearchMapping
 
 
 class APIError(Exception):
@@ -146,7 +147,7 @@ class MangaDex:
         req = self.session.get(f"{self.api}/group/{id_}")
         if req.status_code == 200:
             resp = req.json()
-            return Group(resp["data"], self)
+            return Group(resp["data"], None, self)
         elif req.status_code == 204:
             pass
         else:
@@ -190,13 +191,24 @@ class MangaDex:
         else:
             raise APIError(post)
 
-    def _retrieve_pages(self, url: str, obj, limit: int = 0, call_limit: int = 500):
+    def search(self, obj: str, params: dict, limit: int = 0) -> []:
+        """Searches an object."""
+        if "limit" in params:
+            params.pop("limit")
+        if "offset" in params:
+            params.pop("offset")
+        m = SearchMapping(obj)
+        return self._retrieve_pages(f"{self.api}{m.path}", m.object, limit=limit, call_limit=100, params=params)
+
+    def _retrieve_pages(self, url: str, obj, limit: int = 0, call_limit: int = 500, params: dict = None):
+        params = params or {}
         data = []
         offset = 0
         resp = None
         remaining = True
         while remaining:
             p = {"limit": limit if limit else call_limit, "offset": offset}
+            p = {**p, **params}
             req = self.session.get(url, params=p)
             if req.status_code == 200:
                 resp = req.json()
