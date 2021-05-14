@@ -4,6 +4,7 @@ from .manga import Manga, MangaTag
 from .chapter import Chapter
 from .group import Group
 from .user import User
+from .author import Author
 from .network import NetworkChapter
 from .search import SearchMapping
 
@@ -177,6 +178,17 @@ class MangaDex:
         if not self.login_success:
             raise NotLoggedInError
         return self._retrieve_pages(f"{self.api}/user/follows/manga/feed", Chapter, limit=limit)
+
+    def get_author(self, id_: str) -> Author:
+        """Gets an author with a specific uuid"""
+        req = self.session.get(f"{self.api}/author/{id_}")
+        if req.status_code == 200:
+            resp = req.json()
+            return Author(resp["data"], resp["relationships"], self)
+        elif req.status_code == 204:
+            raise NoContentError(req)
+        else:
+            raise APIError(req)
 
     def transform_ids(self, obj, content: list) -> []:
         """Gets uuids from legacy ids."""
