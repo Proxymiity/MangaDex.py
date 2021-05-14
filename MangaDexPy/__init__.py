@@ -175,21 +175,16 @@ class MangaDex:
         else:
             raise APIError(req)
 
-    def get_user(self, id_: int = 0, full=False) -> User:
-        """Gets an user with a specific id. Set full to True to populate User.chapters_uploaded and User.groups."""
-        p = None
-        if full:
-            p = {"include": "chapters"}
-        if id_ == 0 and self.login_success:
-            id_ = "me"
-        req = self.session.get(f"{self.api}/user/{id_}", params=p)
-
+    def get_user(self, id_: str = "me") -> User:
+        """Gets an user with a specific id."""
+        if id_ == "me" and not self.login_success:
+            raise NotLoggedInError
+        req = self.session.get(f"{self.api}/user/{id_}")
         if req.status_code == 200:
-            json = req.json()["data"]
-            if full:
-                return User(json["user"], json["chapters"], json["groups"])
-            else:
-                return User(json)
+            resp = req.json()
+            return User(resp["data"], self)
+        elif req.status_code == 204:
+            pass
         else:
             raise APIError(req)
 

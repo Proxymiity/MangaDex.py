@@ -4,24 +4,12 @@ hentai_mode = {0: "disabled", 1: "show", 2: "only"}
 
 class User:
     """Represents a MangaDex User."""
-    __slots__ = ("id", "username", "level_id", "joined", "last_seen", "website", "bio", "views", "uploads", "premium",
-                 "md_ah", "avatar", "chapters_uploaded", "groups")
+    __slots__ = ("id", "username", "client")
 
-    def __init__(self, data, chaps=None, groups=None):
+    def __init__(self, data, client):
         self.id = data["id"]
-        self.username = data["username"]
-        self.level_id = data["levelId"]
-        self.joined = data["joined"]
-        self.last_seen = data["lastSeen"]
-        self.website = data["website"]
-        self.bio = data["biography"]
-        self.views = data["views"]
-        self.uploads = data["uploads"]
-        self.premium = data["premium"]
-        self.md_ah = data["mdAtHome"]
-        self.avatar = data["avatar"]
-        self.chapters_uploaded = [PartialChapter(x) for x in chaps or []]
-        self.groups = [PartialGroup(x) for x in groups or []]
+        self.username = data["attributes"]["username"]
+        self.client = client
 
 
 class UserSettings:
