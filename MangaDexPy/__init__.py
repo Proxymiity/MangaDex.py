@@ -1,11 +1,9 @@
 import requests
-import time
 import json
 from .manga import Manga, MangaTag
 from .chapter import Chapter
 from .group import Group
 from .user import User
-from .partial import PartialChapter, PartialGroup, PartialUser
 from .network import NetworkChapter
 
 
@@ -178,23 +176,6 @@ class MangaDex:
         if not self.login_success:
             raise NotLoggedInError
         return self._retrieve_pages(f"{self.api}/user/follows/manga/feed", Chapter, limit=limit)
-
-    def set_user_markers(self, mangas: list, read: bool, id_: int = 0):
-        """Sets chapters as read or unread."""
-        reqs = []
-        lists = [mangas[x:x + 100] for x in range(0, len(mangas), 100)]
-        if id_ == 0 and self.login_success:
-            id_ = "me"
-
-        for y in lists:
-            p = {"chapters": y, "read": read}
-            reqs.append(self.session.post(f"{self.api}/user/{id_}/marker", json=p))
-            time.sleep(1)
-
-        if reqs[-1].status_code == 200:
-            return True
-        else:
-            raise APIError(reqs[-1])
 
     def _retrieve_pages(self, url: str, obj, limit: int = 0, call_limit: int = 500):
         data = []

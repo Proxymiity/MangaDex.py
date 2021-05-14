@@ -1,6 +1,3 @@
-import time
-
-
 class Chapter:
     """Represents a MangaDex Chapter."""
     __slots__ = ("id", "volume", "chapter", "title", "language", "hash", "pages", "pages_redux", "published_at",
