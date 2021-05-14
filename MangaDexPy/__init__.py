@@ -90,7 +90,7 @@ class MangaDex:
             raise APIError(req)
 
     def get_chapter(self, id_: str) -> Chapter:
-        """Gets a chapter with a specific id."""
+        """Gets a chapter with a specific uuid."""
         req = self.session.get(f"{self.api}/chapter/{id_}")
         if req.status_code == 200:
             resp = req.json()
@@ -142,7 +142,7 @@ class MangaDex:
             raise APIError(req)
 
     def get_group(self, id_: str) -> Group:
-        """Gets a group with a specific id."""
+        """Gets a group with a specific uuid."""
         req = self.session.get(f"{self.api}/group/{id_}")
         if req.status_code == 200:
             resp = req.json()
@@ -153,7 +153,7 @@ class MangaDex:
             raise APIError(req)
 
     def get_user(self, id_: str = "me") -> User:
-        """Gets an user with a specific id."""
+        """Gets an user with a specific uuid."""
         if id_ == "me" and not self.login_success:
             raise NotLoggedInError
         req = self.session.get(f"{self.api}/user/{id_}")
@@ -176,6 +176,19 @@ class MangaDex:
         if not self.login_success:
             raise NotLoggedInError
         return self._retrieve_pages(f"{self.api}/user/follows/manga/feed", Chapter, limit=limit)
+
+    def transform_ids(self, obj, content: list) -> []:
+        """Gets uuids from legacy ids."""
+        data = {"type": obj, "ids": content}
+        url = f"{self.api}/legacy/mapping"
+        post = self.session.post(url, data=json.dumps(data))
+        if post.status_code == 200:
+            resp = post.json()
+            return {x["data"]["attributes"]["legacyId"]: x["data"]["attributes"]["newId"] for x in resp}
+        elif post.status_code == 204:
+            pass
+        else:
+            raise APIError(post)
 
     def _retrieve_pages(self, url: str, obj, limit: int = 0, call_limit: int = 500):
         data = []
