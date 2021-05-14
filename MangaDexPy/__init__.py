@@ -4,7 +4,7 @@ import json
 from .manga import Manga, MangaTag
 from .chapter import Chapter
 from .group import Group
-from .user import User, UserSettings, UserFollow, UserUpdate
+from .user import User
 from .partial import PartialChapter, PartialGroup, PartialUser
 from .network import NetworkChapter
 
@@ -122,28 +122,7 @@ class MangaDex:
 
     def get_manga_chapters(self, mg: Manga) -> []:
         """Gets chapters associated with a specific Manga."""
-        chapters = []
-        offset = 0
-        resp = None
-        remaining = True
-        while remaining:
-            p = {"limit": 500, "offset": offset}
-            req = self.session.get(f"{self.api}/manga/{mg.id}/feed", params=p)
-            if req.status_code == 200:
-                resp = req.json()
-                chapters += [x for x in resp["results"]]
-            elif req.status_code == 204:
-                pass
-            else:
-                raise APIError(req)
-            if resp is not None:
-                remaining = resp["total"] > offset + 500
-                offset += 500
-            else:
-                remaining = False
-        if not chapters:
-            raise NoResultsError()
-        return [Chapter(x["data"], x["relationships"], self) for x in chapters]
+        return self._retrieve_pages(f"{self.api}/manga/{mg.id}/feed", Chapter)
 
     def read_chapter(self, ch: Chapter, force_443: bool = False) -> NetworkChapter:
         """Pulls a chapter from the MD@H Network."""
@@ -188,75 +167,17 @@ class MangaDex:
         else:
             raise APIError(req)
 
-    def get_user_settings(self, id_: int = 0) -> UserSettings:
-        """Gets an user's settings. To retrieve another user's settings than the one currently logged in, you must
-        be a MangaDex staff member."""
-        if id_ == 0 and self.login_success:
-            id_ = "me"
-        req = self.session.get(f"{self.api}/user/{id_}/settings")
+    def get_user_list(self, limit: int = 100) -> []:
+        """Gets the currently logged user's manga list."""
+        if not self.login_success:
+            raise NotLoggedInError
+        return self._retrieve_pages(f"{self.api}/user/follows/manga", Manga, limit=limit, call_limit=100)
 
-        if req.status_code == 200:
-            json = req.json()["data"]
-            return UserSettings(json)
-        else:
-            raise APIError(req)
-
-    def get_user_list(self, id_: int = 0, follow_type: int = 0, hentai_mode: int = 1) -> []:
-        """Gets an user's manga list. This settings follows the privacy mode of user's MDList."""
-        p = {"hentai": hentai_mode}
-        if follow_type != 0:
-            p["type"] = follow_type
-        if id_ == 0 and self.login_success:
-            id_ = "me"
-        req = self.session.get(f"{self.api}/user/{id_}/followed-manga", params=p)
-
-        if req.status_code == 200:
-            json = req.json()["data"]
-            if json:
-                return [UserFollow(x) for x in json]
-        else:
-            raise APIError(req)
-
-    def get_user_updates(self, id_: int = 0, follow_type: int = 0, hentai_mode: int = 1, delayed=False,
-                         include_blocked=False) -> []:
-        """Gets an user's manga feed. To retrieve another user's feed than the one currently logged in, you must be a
-        MangaDex staff member."""
-        p = {"type": follow_type, "hentai": hentai_mode, "delayed": delayed, "blockgroups": include_blocked}
-        if id_ == 0 and self.login_success:
-            id_ = "me"
-        req = self.session.get(f"{self.api}/user/{id_}/followed-updates", params=p)
-
-        if req.status_code == 200:
-            json = req.json()["data"]["chapters"]
-            if json:
-                return [UserUpdate(x) for x in json]
-        else:
-            raise APIError(req)
-
-    def get_user_ratings(self, id_: int = 0) -> {}:
-        """Gets an user's ratings."""
-        if id_ == 0 and self.login_success:
-            id_ = "me"
-        req = self.session.get(f"{self.api}/user/{id_}/ratings")
-
-        if req.status_code == 200:
-            json = req.json()["data"]
-            if json:
-                return {x["mangaId"]: x["rating"] for x in json}
-        else:
-            raise APIError(req)
-
-    def get_user_manga(self, id_: int, uid: int = 0) -> UserFollow:
-        """Gets an user's manga from their MDList."""
-        if uid == 0 and self.login_success:
-            uid = "me"
-        req = self.session.get(f"{self.api}/user/{uid}/manga/{id_}")
-
-        if req.status_code == 200:
-            json = req.json()["data"]
-            return UserFollow(json)
-        else:
-            raise APIError(req)
+    def get_user_updates(self, limit: int = 100) -> []:
+        """Gets the currently logged user's manga feed."""
+        if not self.login_success:
+            raise NotLoggedInError
+        return self._retrieve_pages(f"{self.api}/user/follows/manga/feed", Chapter, limit=limit)
 
     def set_user_markers(self, mangas: list, read: bool, id_: int = 0):
         """Sets chapters as read or unread."""
@@ -274,3 +195,29 @@ class MangaDex:
             return True
         else:
             raise APIError(reqs[-1])
+
+    def _retrieve_pages(self, url: str, obj, limit: int = 0, call_limit: int = 500):
+        data = []
+        offset = 0
+        resp = None
+        remaining = True
+        while remaining:
+            p = {"limit": limit if limit else call_limit, "offset": offset}
+            req = self.session.get(url, params=p)
+            if req.status_code == 200:
+                resp = req.json()
+                data += [x for x in resp["results"]]
+            elif req.status_code == 204:
+                pass
+            else:
+                raise APIError(req)
+            if limit and len(data) >= limit:
+                break
+            if resp is not None:
+                remaining = resp["total"] > offset + call_limit
+                offset += call_limit
+            else:
+                remaining = False
+        if not data:
+            raise NoResultsError()
+        return [obj(x["data"], x["relationships"], self) for x in data]
