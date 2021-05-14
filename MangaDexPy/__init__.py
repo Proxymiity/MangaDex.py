@@ -27,6 +27,10 @@ class LoginError(APIError):
     pass
 
 
+class NotLoggedInError(Exception):
+    pass
+
+
 class NoResultsError(Exception):
     pass
 
@@ -37,6 +41,7 @@ class MangaDex:
         self.api = "https://api.mangadex.org"
         self.net_api = "https://api.mangadex.network"
         self.session = requests.Session()
+        self.session.headers["Authorization"] = ""
         self.login_success = False
         self.session_token = None
         self.refresh_token = None
@@ -46,6 +51,23 @@ class MangaDex:
         url = f"{self.api}/auth/login"
         credentials = {"username": username, "password": password}
         post = self.session.post(url, data=json.dumps(credentials))
+        return self._store_token(post)
+
+    def logout(self):
+        """Resets the current session."""
+        self.__init__()
+
+    def refresh(self, token=None):
+        """Refreshes the session using the refresh token."""
+        if not self.login_success:
+            raise NotLoggedInError
+        token = token or self.refresh_token
+        url = f"{self.api}/auth/refresh"
+        data = {"token": token}
+        post = self.session.post(url, data=json.dumps(data))
+        return self._store_token(post)
+
+    def _store_token(self, post):
         if post.status_code == 401:
             raise LoginError(post)
         elif not post.status_code == 200:
@@ -55,11 +77,8 @@ class MangaDex:
             self.login_success = True
             self.session_token = resp["token"]["session"]
             self.refresh_token = resp["token"]["refresh"]
+            self.session.headers["Authorization"] = resp["token"]["session"]
             return True
-
-    def logout(self):
-        """Resets the current session."""
-        self.__init__()
 
     def get_manga(self, id_: str,) -> Manga:
         """Gets a manga with a specific uuid."""
