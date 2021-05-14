@@ -1,11 +1,13 @@
 import requests
-import time
+import json
+from typing import List, Dict, Union
 from .manga import Manga, MangaTag
 from .chapter import Chapter
 from .group import Group
-from .user import User, UserSettings, UserFollow, UserUpdate
-from .partial import PartialChapter, PartialGroup, PartialUser
-from .relation import Relation
+from .user import User
+from .author import Author
+from .network import NetworkChapter
+from .search import SearchMapping
 
 
 class APIError(Exception):
@@ -18,193 +20,220 @@ class APIError(Exception):
             print(e)
 
 
-class LoginError(Exception):
+class NoContentError(APIError):
+    pass
+
+
+class LoginError(APIError):
+    pass
+
+
+class NotLoggedInError(Exception):
+    pass
+
+
+class NoResultsError(Exception):
     pass
 
 
 class MangaDex:
     """Represents the MangaDex API Client."""
     def __init__(self):
-        self.url = "https://mangadex.org"
-        self.api = "https://api.mangadex.org/v2"
+        self.api = "https://api.mangadex.org"
+        self.net_api = "https://api.mangadex.network"
         self.session = requests.Session()
+        self.session.headers["Authorization"] = ""
         self.login_success = False
+        self.session_token = None
+        self.refresh_token = None
 
-    def login(self, username: str, password: str):
+    def login(self, username: str, password: str) -> bool:
         """Logs in to MangaDex using an username and a password."""
-        url = f"{self.url}/ajax/actions.ajax.php?function=login"
-        credentials = {"login_username": username, "login_password": password}
-        headers = {
-            "method": "POST",
-            "path": "/ajax/actions.ajax.php?function=login",
-            "scheme": "https",
-            "Accept": "*/*",
-            "accept-encoding": "gzip, deflate, br",
-            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-            "origin": self.url,
-            "sec-fetch-dest": "empty",
-            "sec-fetch-mode": "cors",
-            "sec-fetch-site": "same-origin",
-            "x-requested-with": "XMLHttpRequest",
-        }
-
-        post = self.session.post(url, data=credentials, headers=headers)
-        if not post.status_code == 200:
-            raise APIError(post)
-        if not post.cookies.get("mangadex_session"):
-            raise LoginError("Invalid credentials.")
-        else:
-            self.login_success = True
-            return True
+        credentials = {"username": username, "password": password}
+        post = self.session.post(f"{self.api}/auth/login", data=json.dumps(credentials))
+        return self._store_token(post)
 
     def logout(self):
         """Resets the current session."""
-        self.session = requests.Session()
-        self.login_success = False
+        self.__init__()
 
-    def get_manga(self, id_: int, full=False) -> Manga:
-        """Gets a manga with a specific id. Set full to True to populate Manga.chapters and Manga.groups"""
-        p = None
-        if full:
-            p = {"include": "chapters"}
-        req = self.session.get(f"{self.api}/manga/{id_}", params=p)
+    def refresh(self, token=None) -> bool:
+        """Refreshes the session using the refresh token."""
+        if not self.login_success:
+            raise NotLoggedInError
+        token = token or self.refresh_token
+        data = {"token": token}
+        post = self.session.post(f"{self.api}/auth/refresh", data=json.dumps(data))
+        return self._store_token(post)
 
+    def _store_token(self, post):
+        if post.status_code == 401:
+            raise LoginError(post)
+        elif not post.status_code == 200:
+            raise APIError(post)
+        else:
+            resp = post.json()
+            self.login_success = True
+            self.session_token = resp["token"]["session"]
+            self.refresh_token = resp["token"]["refresh"]
+            self.session.headers["Authorization"] = resp["token"]["session"]
+            return True
+
+    def get_manga(self, id_: str) -> Manga:
+        """Gets a manga with a specific uuid."""
+        req = self.session.get(f"{self.api}/manga/{id_}")
         if req.status_code == 200:
-            json = req.json()["data"]
-            if full:
-                return Manga(json["manga"], self.session, json["chapters"], json["groups"])
+            resp = req.json()
+            return Manga(resp["data"], resp["relationships"], self)
+        elif req.status_code == 204:
+            raise NoContentError(req)
+        else:
+            raise APIError(req)
+
+    def get_chapter(self, id_: str) -> Chapter:
+        """Gets a chapter with a specific uuid."""
+        req = self.session.get(f"{self.api}/chapter/{id_}")
+        if req.status_code == 200:
+            resp = req.json()
+            return Chapter(resp["data"], resp["relationships"], self)
+        elif req.status_code == 204:
+            pass
+        else:
+            raise APIError(req)
+
+    def get_chapters(self, ids: list) -> List[Chapter]:
+        """Gets chapters with specific uuids."""
+        chapters = []
+        sub = [ids[x:x+100] for x in range(0, len(ids), 100)]
+        for s in sub:
+            p = {"ids[]": s}
+            req = self.session.get(f"{self.api}/chapter", params=p)
+            if req.status_code == 200:
+                resp = req.json()
+                chapters += [x for x in resp["results"]]
+            elif req.status_code == 204:
+                pass
             else:
-                return Manga(json, self.session)
-        else:
-            raise APIError(req)
+                raise APIError(req)
+        if not sub or not chapters:
+            raise NoResultsError()
+        return [Chapter(x["data"], x["relationships"], self) for x in chapters]
 
-    def get_chapter(self, id_: int, low_quality=False, mark_read=False) -> Chapter:
-        """Gets a chapter with a specific id."""
-        p = {"saver": low_quality, "mark_read": mark_read}
-        req = self.session.get(f"{self.api}/chapter/{id_}", params=p)
+    def get_manga_chapters(self, mg: Manga) -> List[Chapter]:
+        """Gets chapters associated with a specific Manga."""
+        return self._retrieve_pages(f"{self.api}/manga/{mg.id}/feed", Chapter)
 
+    def read_chapter(self, ch: Chapter, force_443: bool = False) -> NetworkChapter:
+        """Pulls a chapter from the MD@H Network."""
+        data = {"forcePort443": force_443}
+        req = self.session.get(f"{self.api}/at-home/server/{ch.id}", params=data)
         if req.status_code == 200:
-            return Chapter(req.json()["data"], self.session)
+            resp = req.json()
+            return NetworkChapter(ch, resp["baseUrl"], self)
         else:
             raise APIError(req)
 
-    def get_group(self, id_: int, full=False) -> Group:
-        """Gets a group with a specific id. Set full to True to populate Group.chapters_uploaded and Group.collabs."""
-        p = None
-        if full:
-            p = {"include": "chapters"}
-        req = self.session.get(f"{self.api}/group/{id_}", params=p)
-
+    def network_report(self, url: str, success: bool, cache_header: bool, req_bytes: int, req_duration: int) -> bool:
+        """Reports statistics back to the MD@H Network."""
+        data = {"url": url, "success": success, "cached": cache_header, "bytes": req_bytes, "duration": req_duration}
+        req = self.session.post(f"{self.net_api}/report", data=json.dumps(data))
         if req.status_code == 200:
-            json = req.json()["data"]
-            if full:
-                return Group(json["group"], json["chapters"], json["groups"])
-            else:
-                return Group(json)
-        else:
-            raise APIError(req)
-
-    def get_user(self, id_: int = 0, full=False) -> User:
-        """Gets an user with a specific id. Set full to True to populate User.chapters_uploaded and User.groups."""
-        p = None
-        if full:
-            p = {"include": "chapters"}
-        if id_ == 0 and self.login_success:
-            id_ = "me"
-        req = self.session.get(f"{self.api}/user/{id_}", params=p)
-
-        if req.status_code == 200:
-            json = req.json()["data"]
-            if full:
-                return User(json["user"], json["chapters"], json["groups"])
-            else:
-                return User(json)
-        else:
-            raise APIError(req)
-
-    def get_user_settings(self, id_: int = 0) -> UserSettings:
-        """Gets an user's settings. To retrieve another user's settings than the one currently logged in, you must
-        be a MangaDex staff member."""
-        if id_ == 0 and self.login_success:
-            id_ = "me"
-        req = self.session.get(f"{self.api}/user/{id_}/settings")
-
-        if req.status_code == 200:
-            json = req.json()["data"]
-            return UserSettings(json)
-        else:
-            raise APIError(req)
-
-    def get_user_list(self, id_: int = 0, follow_type: int = 0, hentai_mode: int = 1) -> []:
-        """Gets an user's manga list. This settings follows the privacy mode of user's MDList."""
-        p = {"hentai": hentai_mode}
-        if follow_type != 0:
-            p["type"] = follow_type
-        if id_ == 0 and self.login_success:
-            id_ = "me"
-        req = self.session.get(f"{self.api}/user/{id_}/followed-manga", params=p)
-
-        if req.status_code == 200:
-            json = req.json()["data"]
-            if json:
-                return [UserFollow(x) for x in json]
-        else:
-            raise APIError(req)
-
-    def get_user_updates(self, id_: int = 0, follow_type: int = 0, hentai_mode: int = 1, delayed=False,
-                         include_blocked=False) -> []:
-        """Gets an user's manga feed. To retrieve another user's feed than the one currently logged in, you must be a
-        MangaDex staff member."""
-        p = {"type": follow_type, "hentai": hentai_mode, "delayed": delayed, "blockgroups": include_blocked}
-        if id_ == 0 and self.login_success:
-            id_ = "me"
-        req = self.session.get(f"{self.api}/user/{id_}/followed-updates", params=p)
-
-        if req.status_code == 200:
-            json = req.json()["data"]["chapters"]
-            if json:
-                return [UserUpdate(x) for x in json]
-        else:
-            raise APIError(req)
-
-    def get_user_ratings(self, id_: int = 0) -> {}:
-        """Gets an user's ratings."""
-        if id_ == 0 and self.login_success:
-            id_ = "me"
-        req = self.session.get(f"{self.api}/user/{id_}/ratings")
-
-        if req.status_code == 200:
-            json = req.json()["data"]
-            if json:
-                return {x["mangaId"]: x["rating"] for x in json}
-        else:
-            raise APIError(req)
-
-    def get_user_manga(self, id_: int, uid: int = 0) -> UserFollow:
-        """Gets an user's manga from their MDList."""
-        if uid == 0 and self.login_success:
-            uid = "me"
-        req = self.session.get(f"{self.api}/user/{uid}/manga/{id_}")
-
-        if req.status_code == 200:
-            json = req.json()["data"]
-            return UserFollow(json)
-        else:
-            raise APIError(req)
-
-    def set_user_markers(self, mangas: list, read: bool, id_: int = 0):
-        """Sets chapters as read or unread."""
-        reqs = []
-        lists = [mangas[x:x + 100] for x in range(0, len(mangas), 100)]
-        if id_ == 0 and self.login_success:
-            id_ = "me"
-
-        for y in lists:
-            p = {"chapters": y, "read": read}
-            reqs.append(self.session.post(f"{self.api}/user/{id_}/marker", json=p))
-            time.sleep(1)
-
-        if reqs[-1].status_code == 200:
             return True
         else:
-            raise APIError(reqs[-1])
+            raise APIError(req)
+
+    def get_group(self, id_: str) -> Group:
+        """Gets a group with a specific uuid."""
+        req = self.session.get(f"{self.api}/group/{id_}")
+        if req.status_code == 200:
+            resp = req.json()
+            return Group(resp["data"], None, self)
+        elif req.status_code == 204:
+            pass
+        else:
+            raise APIError(req)
+
+    def get_user(self, id_: str = "me") -> User:
+        """Gets an user with a specific uuid."""
+        if id_ == "me" and not self.login_success:
+            raise NotLoggedInError
+        req = self.session.get(f"{self.api}/user/{id_}")
+        if req.status_code == 200:
+            resp = req.json()
+            return User(resp["data"], self)
+        elif req.status_code == 204:
+            pass
+        else:
+            raise APIError(req)
+
+    def get_user_list(self, limit: int = 100) -> List[Manga]:
+        """Gets the currently logged user's manga list."""
+        if not self.login_success:
+            raise NotLoggedInError
+        return self._retrieve_pages(f"{self.api}/user/follows/manga", Manga, limit=limit, call_limit=100)
+
+    def get_user_updates(self, limit: int = 100) -> List[Chapter]:
+        """Gets the currently logged user's manga feed."""
+        if not self.login_success:
+            raise NotLoggedInError
+        return self._retrieve_pages(f"{self.api}/user/follows/manga/feed", Chapter, limit=limit)
+
+    def get_author(self, id_: str) -> Author:
+        """Gets an author with a specific uuid"""
+        req = self.session.get(f"{self.api}/author/{id_}")
+        if req.status_code == 200:
+            resp = req.json()
+            return Author(resp["data"], resp["relationships"], self)
+        elif req.status_code == 204:
+            raise NoContentError(req)
+        else:
+            raise APIError(req)
+
+    def transform_ids(self, obj: str, content: list) -> Dict:
+        """Gets uuids from legacy ids."""
+        data = {"type": obj, "ids": content}
+        post = self.session.post(f"{self.api}/legacy/mapping", data=json.dumps(data))
+        if post.status_code == 200:
+            resp = post.json()
+            return {x["data"]["attributes"]["legacyId"]: x["data"]["attributes"]["newId"] for x in resp}
+        elif post.status_code == 204:
+            pass
+        else:
+            raise APIError(post)
+
+    def search(self, obj: str, params: dict, limit: int = 0) -> List[Union[Manga, Chapter, Group, Author]]:
+        """Searches an object."""
+        if "limit" in params:
+            params.pop("limit")
+        if "offset" in params:
+            params.pop("offset")
+        m = SearchMapping(obj)
+        return self._retrieve_pages(f"{self.api}{m.path}", m.object, limit=limit, call_limit=100, params=params)
+
+    def _retrieve_pages(self, url: str, obj, limit: int = 0, call_limit: int = 500, params: dict = None):
+        params = params or {}
+        data = []
+        offset = 0
+        resp = None
+        remaining = True
+        while remaining:
+            p = {"limit": limit if limit else call_limit, "offset": offset}
+            p = {**p, **params}
+            req = self.session.get(url, params=p)
+            if req.status_code == 200:
+                resp = req.json()
+                data += [x for x in resp["results"]]
+            elif req.status_code == 204:
+                pass
+            else:
+                raise APIError(req)
+            if limit and len(data) >= limit:
+                break
+            if resp is not None:
+                remaining = resp["total"] > offset + call_limit
+                offset += call_limit
+            else:
+                remaining = False
+        if not data:
+            raise NoResultsError()
+        return [obj(x["data"], x["relationships"], self) for x in data]

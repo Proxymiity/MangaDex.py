@@ -1,49 +1,24 @@
-from .partial import PartialGroup
-
-
 class Chapter:
     """Represents a MangaDex Chapter."""
-    __slots__ = ("id", "hash", "manga_id", "manga_title", "volume", "chapter", "title", "language", "groups",
-                 "uploader", "timestamp", "thread_id", "views", "pages", "server", "fallback_server", "server_status",
-                 "session")
+    __slots__ = ("id", "volume", "chapter", "title", "language", "hash", "pages", "pages_redux", "published_at",
+                 "created_at", "updated_at", "parent_manga", "group", "uploader", "client")
 
-    def __init__(self, data, session):
+    def __init__(self, data, rel, client):
         self.id = data["id"]
-        self.hash = data["hash"]
-        self.manga_id = data["mangaId"]
-        self.manga_title = data["mangaTitle"]
-        self.volume = data["volume"]
-        self.chapter = data["chapter"]
-        self.title = data["title"]
-        self.language = data["language"]
-        self.groups = [PartialGroup(x) for x in data["groups"]]
-        self.uploader = data["uploader"]
-        self.timestamp = data["timestamp"]
-        self.thread_id = data["threadId"]
-        self.views = data["views"]
-        self.pages = data["pages"]
-        self.server = data["server"]
-        self.fallback_server = data["serverFallback"]
-        self.server_status = data["status"]
-        self.session = session
+        self.volume = data["attributes"]["volume"]
+        self.chapter = data["attributes"]["chapter"]
+        self.title = data["attributes"]["title"]
+        self.language = data["attributes"]["translatedLanguage"]
+        self.hash = data["attributes"]["hash"]
+        self.pages = data["attributes"]["data"]
+        self.pages_redux = data["attributes"]["dataSaver"]
+        self.published_at = data["attributes"]["publishAt"]
+        self.created_at = data["attributes"]["createdAt"]
+        self.updated_at = data["attributes"]["updatedAt"]
+        self.parent_manga = [x["id"] for x in rel if x["type"] == "manga"]
+        self.group = [x["id"] for x in rel if x["type"] == "scanlation_group"]
+        self.uploader = [x["id"] for x in rel if x["type"] == "user"]
+        self.client = client
 
-    def get_page(self, page, fallback=False):
-        if fallback:
-            return self.fallback_server + self.hash + "/" + self.pages[page]
-        else:
-            return self.server + self.hash + "/" + self.pages[page]
-
-    def format_url(self, img, fallback=False):
-        if fallback:
-            return self.fallback_server + self.hash + "/" + img
-        else:
-            return self.server + self.hash + "/" + img
-
-    def refresh(self):
-        p = {"saver": "data-saver" in self.server, "mark_read": False}
-        req = self.session.get(f"https://api.mangadex.org/v2/chapter/{self.id}", params=p)
-        if req.status_code == 200:
-            data = req.json()["data"]
-            self.pages = data["pages"]
-            self.server = data["server"]
-            self.fallback_server = data["serverFallback"]
+    def get_md_network(self, force_443: bool = False):
+        return self.client.read_chapter(self, force_443)
