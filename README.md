@@ -21,13 +21,13 @@ import MangaDexPy
 cli = MangaDexPy.MangaDex()
 cli.login("username", "password")
 
-# Get manga with id 24724. Setting full to True allows retrieving the list of chapters associated to this Manga
-manga = cli.get_manga(24724, full=True)
+# Get manga with id b9797c5b-642e-44d9-ac40-8b31b9ae110a.
+manga = cli.get_manga("b9797c5b-642e-44d9-ac40-8b31b9ae110a")
 
 print(manga.title + "'s latest volume:")
-print(manga.chapters[0].volume)
+print(manga.last_volume)
 print(manga.title + "'s latest chapter:")
-print(manga.chapters[0].chapter)
+print(manga.last_chapter)
 ````
 Here's the terminal output:  
 ![Quick start demo image](https://api.proxymiity.fr/github/Proxymiity/MangaDex.py/quick_start_demo.png)  
@@ -36,10 +36,7 @@ Here's the terminal output:
 ### Explanation
 ``cli = MangaDexPy.MangaDex()`` returns the client object used to make calls.  
 ``cli.login(u ,p)`` logs in to MangaDex using credentials stored in variables.  
-``manga = cli.get_manga(24724, full=True)`` returns a `Manga` object.  
-This Manga object has a ``.chapters`` property, which returns a List of `PartialChapter`. A partial Chapter is a chapter with no information about its pages nor the server it is server from, unlike `Chapter`.  
-We could retrieve the entire ``Chapter`` using `cli.get_chapter(manga.chapters[0].id)`, but this isn't needed as we're just requesting `volume` and `chapter` properties of this chapter, which is included in the `PartialChapter`.
+``manga = cli.get_manga("b9797c5b-642e-44d9-ac40-8b31b9ae110a", full=True)`` returns a `Manga` object, which contains the `last_volume` and `last_chapter` properties.
 
 # Documentation
-
 The full API documentation is available [in this repository's wiki](https://github.com/Proxymiity/MangaDex.py/wiki).
