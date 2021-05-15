@@ -38,6 +38,7 @@ class NoResultsError(Exception):
 
 class MangaDex:
     """Represents the MangaDex API Client."""
+
     def __init__(self):
         self.api = "https://api.mangadex.org"
         self.net_api = "https://api.mangadex.network"
@@ -50,7 +51,8 @@ class MangaDex:
     def login(self, username: str, password: str) -> bool:
         """Logs in to MangaDex using an username and a password."""
         credentials = {"username": username, "password": password}
-        post = self.session.post(f"{self.api}/auth/login", data=json.dumps(credentials))
+        post = self.session.post(
+            f"{self.api}/auth/login", data=json.dumps(credentials))
         return self._store_token(post)
 
     def logout(self):
@@ -63,8 +65,18 @@ class MangaDex:
             raise NotLoggedInError
         token = token or self.refresh_token
         data = {"token": token}
-        post = self.session.post(f"{self.api}/auth/refresh", data=json.dumps(data))
+        post = self.session.post(
+            f"{self.api}/auth/refresh", data=json.dumps(data))
         return self._store_token(post)
+
+    def check(self) -> bool:
+        """Checks if the existent token on Authorization still valid."""
+        req = self.session.get(f"{self.api}/auth/check")
+        if req.status_code == 200:
+            resp = req.json()
+            return resp['isAuthenticated']
+        else:
+            raise APIError(req)
 
     def _store_token(self, post):
         if post.status_code == 401:
@@ -126,7 +138,8 @@ class MangaDex:
     def read_chapter(self, ch: Chapter, force_443: bool = False) -> NetworkChapter:
         """Pulls a chapter from the MD@H Network."""
         data = {"forcePort443": force_443}
-        req = self.session.get(f"{self.api}/at-home/server/{ch.id}", params=data)
+        req = self.session.get(
+            f"{self.api}/at-home/server/{ch.id}", params=data)
         if req.status_code == 200:
             resp = req.json()
             return NetworkChapter(ch, resp["baseUrl"], self)
@@ -135,8 +148,10 @@ class MangaDex:
 
     def network_report(self, url: str, success: bool, cache_header: bool, req_bytes: int, req_duration: int) -> bool:
         """Reports statistics back to the MD@H Network."""
-        data = {"url": url, "success": success, "cached": cache_header, "bytes": req_bytes, "duration": req_duration}
-        req = self.session.post(f"{self.net_api}/report", data=json.dumps(data))
+        data = {"url": url, "success": success, "cached": cache_header,
+                "bytes": req_bytes, "duration": req_duration}
+        req = self.session.post(
+            f"{self.net_api}/report", data=json.dumps(data))
         if req.status_code == 200:
             return True
         else:
@@ -192,7 +207,8 @@ class MangaDex:
     def transform_ids(self, obj: str, content: list) -> Dict:
         """Gets uuids from legacy ids."""
         data = {"type": obj, "ids": content}
-        post = self.session.post(f"{self.api}/legacy/mapping", data=json.dumps(data))
+        post = self.session.post(
+            f"{self.api}/legacy/mapping", data=json.dumps(data))
         if post.status_code == 200:
             resp = post.json()
             return {x["data"]["attributes"]["legacyId"]: x["data"]["attributes"]["newId"] for x in resp}
