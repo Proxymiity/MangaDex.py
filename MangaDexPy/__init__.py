@@ -210,7 +210,7 @@ class MangaDex:
         else:
             raise APIError(post)
 
-    def search(self, obj: str, params: dict, limit: int = 0) -> List[Union[Manga, Chapter, Group, Author]]:
+    def search(self, obj: str, params: dict, limit: int = 100) -> List[Union[Manga, Chapter, Group, Author]]:
         """Searches an object."""
         if "limit" in params:
             params.pop("limit")
@@ -226,7 +226,7 @@ class MangaDex:
         resp = None
         remaining = True
         while remaining:
-            p = {"limit": limit if limit else call_limit, "offset": offset}
+            p = {"limit": limit if limit <= call_limit else call_limit, "offset": offset}
             p = {**p, **params}
             req = self.session.get(url, params=p)
             if req.status_code == 200:
