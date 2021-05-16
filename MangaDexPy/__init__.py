@@ -128,9 +128,14 @@ class MangaDex:
             raise NoResultsError()
         return [Chapter(x["data"], x["relationships"], self) for x in chapters]
 
-    def get_manga_chapters(self, mg: Manga) -> List[Chapter]:
+    def get_manga_chapters(self, mg: Manga, params: dict = None) -> List[Chapter]:
         """Gets chapters associated with a specific Manga."""
-        return self._retrieve_pages(f"{self.api}/manga/{mg.id}/feed", Chapter)
+        params = params or {}
+        if "limit" in params:
+            params.pop("limit")
+        if "offset" in params:
+            params.pop("offset")
+        return self._retrieve_pages(f"{self.api}/manga/{mg.id}/feed", Chapter, call_limit=100, params=params)
 
     def read_chapter(self, ch: Chapter, force_443: bool = False) -> NetworkChapter:
         """Pulls a chapter from the MD@H Network."""
@@ -181,11 +186,17 @@ class MangaDex:
             raise NotLoggedInError
         return self._retrieve_pages(f"{self.api}/user/follows/manga", Manga, limit=limit, call_limit=100)
 
-    def get_user_updates(self, limit: int = 100) -> List[Chapter]:
+    def get_user_updates(self, limit: int = 100, params: dict = None) -> List[Chapter]:
         """Gets the currently logged user's manga feed."""
         if not self.login_success:
             raise NotLoggedInError
-        return self._retrieve_pages(f"{self.api}/user/follows/manga/feed", Chapter, limit=limit)
+        params = params or {}
+        if "limit" in params:
+            params.pop("limit")
+        if "offset" in params:
+            params.pop("offset")
+        return self._retrieve_pages(f"{self.api}/user/follows/manga/feed", Chapter, call_limit=100,
+                                    limit=limit, params=params)
 
     def get_author(self, id_: str) -> Author:
         """Gets an author with a specific uuid"""
