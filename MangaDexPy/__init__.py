@@ -94,7 +94,7 @@ class MangaDex:
         if req.status_code == 200:
             resp = req.json()
             return Manga(resp["data"], resp["relationships"], self)
-        elif req.status_code == 204:
+        elif req.status_code == 404:
             raise NoContentError(req)
         else:
             raise APIError(req)
@@ -105,7 +105,7 @@ class MangaDex:
         if req.status_code == 200:
             resp = req.json()
             return Chapter(resp["data"], resp["relationships"], self)
-        elif req.status_code == 204:
+        elif req.status_code == 404:
             raise NoContentError(req)
         else:
             raise APIError(req)
@@ -162,7 +162,7 @@ class MangaDex:
         if req.status_code == 200:
             resp = req.json()
             return Group(resp["data"], None, self)
-        elif req.status_code == 204:
+        elif req.status_code == 404:
             raise NoContentError(req)
         else:
             raise APIError(req)
@@ -175,7 +175,7 @@ class MangaDex:
         if req.status_code == 200:
             resp = req.json()
             return User(resp["data"], self)
-        elif req.status_code == 204:
+        elif req.status_code == 404:
             raise NoContentError(req)
         else:
             raise APIError(req)
@@ -204,7 +204,7 @@ class MangaDex:
         if req.status_code == 200:
             resp = req.json()
             return Author(resp["data"], resp["relationships"], self)
-        elif req.status_code == 204:
+        elif req.status_code == 404:
             raise NoContentError(req)
         else:
             raise APIError(req)
@@ -216,8 +216,6 @@ class MangaDex:
         if post.status_code == 200:
             resp = post.json()
             return {x["data"]["attributes"]["legacyId"]: x["data"]["attributes"]["newId"] for x in resp}
-        elif post.status_code == 204:
-            raise NoContentError(post)
         else:
             raise APIError(post)
 
