@@ -25,8 +25,8 @@ class Manga:
         self.artist = [x["id"] for x in rel if x["type"] == "artist"]
         self.client = client
 
-    def get_chapters(self):
-        return self.client.get_manga_chapters(self)
+    def get_chapters(self, params=None):
+        return self.client.get_manga_chapters(self, params)
 
 
 class MangaTag:

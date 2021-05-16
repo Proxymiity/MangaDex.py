@@ -237,7 +237,7 @@ class MangaDex:
         resp = None
         remaining = True
         while remaining:
-            p = {"limit": limit if limit <= call_limit else call_limit, "offset": offset}
+            p = {"limit": limit if limit <= call_limit and limit != 0 else call_limit, "offset": offset}
             p = {**p, **params}
             req = self.session.get(url, params=p)
             if req.status_code == 200:
