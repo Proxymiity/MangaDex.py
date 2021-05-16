@@ -66,6 +66,15 @@ class MangaDex:
         post = self.session.post(f"{self.api}/auth/refresh", data=json.dumps(data))
         return self._store_token(post)
 
+    def check(self) -> bool:
+        """Checks if the stored Authorization token is still valid."""
+        req = self.session.get(f"{self.api}/auth/check")
+        if req.status_code == 200:
+            resp = req.json()
+            return resp["isAuthenticated"]
+        else:
+            raise APIError(req)
+
     def _store_token(self, post):
         if post.status_code == 401:
             raise LoginError(post)
