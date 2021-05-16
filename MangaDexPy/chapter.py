@@ -15,9 +15,9 @@ class Chapter:
         self.published_at = data["attributes"]["publishAt"]
         self.created_at = data["attributes"]["createdAt"]
         self.updated_at = data["attributes"]["updatedAt"]
-        self.parent_manga = [x["id"] for x in rel if x["type"] == "manga"]
+        self.parent_manga = next((x["id"] for x in rel if x["type"] == "manga"), None)
         self.group = [x["id"] for x in rel if x["type"] == "scanlation_group"]
-        self.uploader = [x["id"] for x in rel if x["type"] == "user"]
+        self.uploader = next((x["id"] for x in rel if x["type"] == "user"), None)
         self.client = client
 
     def get_md_network(self, force_443: bool = False):
