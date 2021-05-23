@@ -1,7 +1,7 @@
 class Manga:
     """Represents a MangaDex Manga."""
     __slots__ = ("id", "title", "titles", "desc", "locked", "links", "language", "last_volume", "last_chapter",
-                 "type", "status", "year", "content", "tags", "created_at", "updated_at", "author", "artist",
+                 "type", "status", "year", "content", "tags", "created_at", "updated_at", "author", "artist", "cover",
                  "chapters", "client")
 
     def __init__(self, data, rel, client):
@@ -23,10 +23,14 @@ class Manga:
         self.updated_at = data["attributes"]["updatedAt"]
         self.author = [x["id"] for x in rel if x["type"] == "author"]
         self.artist = [x["id"] for x in rel if x["type"] == "artist"]
+        self.cover = next((x["id"] for x in rel if x["type"] == "cover_art"), None)
         self.client = client
 
     def get_chapters(self, params=None):
         return self.client.get_manga_chapters(self, params)
+
+    def get_covers(self, params=None):
+        return self.client.get_manga_covers(self, params)
 
 
 class MangaTag:
@@ -36,3 +40,12 @@ class MangaTag:
     def __init__(self, data):
         self.id = data["id"]
         self.name = data["attributes"]["name"]
+
+
+class MangaCover:
+    """Represents a MangaDex Manga Cover."""
+    __slots__ = ("id", "url")
+
+    def __init__(self, data):
+        self.id = data["id"]
+        self.url = data["attributes"]["url"]

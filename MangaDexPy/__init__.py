@@ -6,6 +6,7 @@ from .chapter import Chapter
 from .group import Group
 from .user import User
 from .author import Author
+from .cover import Cover
 from .network import NetworkChapter
 from .search import SearchMapping
 
@@ -136,6 +137,23 @@ class MangaDex:
         if "offset" in params:
             params.pop("offset")
         return self._retrieve_pages(f"{self.api}/manga/{mg.id}/feed", Chapter, call_limit=100, params=params)
+
+    def get_manga_covers(self, mg: Manga, params: dict = None) -> List[Cover]:
+        """Gets covers associated with a specific Manga."""
+        params = params or {}
+        params["manga[]"] = mg.id
+        return self._retrieve_pages(f"{self.api}/cover", Cover, call_limit=100, params=params)
+
+    def get_cover(self, id_: str) -> Cover:
+        """Gets a cover with a specific uuid."""
+        req = self.session.get(f"{self.api}/cover/{id_}")
+        if req.status_code == 200:
+            resp = req.json()
+            return Cover(resp["data"], resp["relationships"], self)
+        elif req.status_code == 404:
+            raise NoContentError(req)
+        else:
+            raise APIError(req)
 
     def read_chapter(self, ch: Chapter, force_443: bool = False) -> NetworkChapter:
         """Pulls a chapter from the MD@H Network."""
