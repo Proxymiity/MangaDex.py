@@ -1,6 +1,6 @@
 import requests
 import json
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Type
 from .manga import Manga, MangaTag
 from .chapter import Chapter
 from .group import Group
@@ -62,7 +62,7 @@ class MangaDex:
         """Resets the current session."""
         self.__init__()
 
-    def refresh(self, token=None) -> bool:
+    def refresh(self, token: str = None) -> bool:
         """Refreshes the session using the refresh token."""
         if not self.login_success:
             raise NotLoggedInError
@@ -115,7 +115,7 @@ class MangaDex:
         else:
             raise APIError(req)
 
-    def get_chapters(self, ids: list) -> List[Chapter]:
+    def get_chapters(self, ids: List[str]) -> List[Chapter]:
         """Gets chapters with specific uuids."""
         chapters = []
         sub = [ids[x:x+100] for x in range(0, len(ids), 100)]
@@ -227,7 +227,7 @@ class MangaDex:
         else:
             raise APIError(req)
 
-    def transform_ids(self, obj: str, content: list) -> Dict:
+    def transform_ids(self, obj: str, content: List[int]) -> Dict:
         """Gets uuids from legacy ids."""
         data = {"type": obj, "ids": content}
         post = self.session.post(f"{self.api}/legacy/mapping", data=json.dumps(data))
@@ -237,12 +237,14 @@ class MangaDex:
         else:
             raise APIError(post)
 
-    def search(self, obj: str, params: dict, limit: int = 100) -> List[Union[Manga, Chapter, Group, Author]]:
+    def search(self, obj: str, params: dict, limit: int = 100) -> List[Union[Manga, Chapter, Group, Author, Cover]]:
         """Searches an object."""
         m = SearchMapping(obj)
         return self._retrieve_pages(f"{self.api}{m.path}", m.object, limit=limit, call_limit=100, params=params)
 
-    def _retrieve_pages(self, url: str, obj, limit: int = 0, call_limit: int = 500, params: dict = None):
+    def _retrieve_pages(self, url: str, obj: Type[Union[Manga, Chapter, Group, Author, Cover]],
+                        limit: int = 0, call_limit: int = 500,
+                        params: dict = None) -> List[Union[Manga, Chapter, Group, Author, Cover]]:
         params = params or {}
         data = []
         offset = 0
