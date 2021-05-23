@@ -11,7 +11,11 @@ from .network import NetworkChapter
 from .search import SearchMapping
 
 
-class APIError(Exception):
+class MDException(Exception):
+    pass
+
+
+class APIError(MDException):
     def __init__(self, r):
         self.status = r.status_code
         self.data = None
@@ -29,11 +33,11 @@ class LoginError(APIError):
     pass
 
 
-class NotLoggedInError(Exception):
+class NotLoggedInError(MDException):
     pass
 
 
-class NoResultsError(Exception):
+class NoResultsError(MDException):
     pass
 
 
