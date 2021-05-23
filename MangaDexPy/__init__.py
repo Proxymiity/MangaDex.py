@@ -191,10 +191,6 @@ class MangaDex:
         if not self.login_success:
             raise NotLoggedInError
         params = params or {}
-        if "limit" in params:
-            params.pop("limit")
-        if "offset" in params:
-            params.pop("offset")
         return self._retrieve_pages(f"{self.api}/user/follows/manga/feed", Chapter, call_limit=100,
                                     limit=limit, params=params)
 
@@ -221,10 +217,6 @@ class MangaDex:
 
     def search(self, obj: str, params: dict, limit: int = 100) -> List[Union[Manga, Chapter, Group, Author]]:
         """Searches an object."""
-        if "limit" in params:
-            params.pop("limit")
-        if "offset" in params:
-            params.pop("offset")
         m = SearchMapping(obj)
         return self._retrieve_pages(f"{self.api}{m.path}", m.object, limit=limit, call_limit=100, params=params)
 
@@ -234,6 +226,10 @@ class MangaDex:
         offset = 0
         resp = None
         remaining = True
+        if "limit" in params:
+            params.pop("limit")
+        if "offset" in params:
+            params.pop("offset")
         while remaining:
             p = {"limit": limit if limit <= call_limit and limit != 0 else call_limit, "offset": offset}
             p = {**p, **params}
