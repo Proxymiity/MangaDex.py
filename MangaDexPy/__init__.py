@@ -1,6 +1,6 @@
 import requests
 import json
-from typing import List, Dict, Union, Type, Literal
+from typing import List, Dict, Union, Type
 from .manga import Manga, MangaTag
 from .chapter import Chapter
 from .group import Group
@@ -237,7 +237,7 @@ class MangaDex:
         else:
             raise APIError(post)
 
-    def search(self, obj: Literal["manga", "chapter", "group", "author", "cover"], params: dict,
+    def search(self, obj: str, params: dict,
                limit: int = 100) -> List[Union[Manga, Chapter, Group, Author, Cover]]:
         """Searches an object."""
         m = SearchMapping(obj)
