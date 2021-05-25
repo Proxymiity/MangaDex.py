@@ -40,12 +40,3 @@ class MangaTag:
     def __init__(self, data):
         self.id = data["id"]
         self.name = data["attributes"]["name"]
-
-
-class MangaCover:
-    """Represents a MangaDex Manga Cover."""
-    __slots__ = ("id", "url")
-
-    def __init__(self, data):
-        self.id = data["id"]
-        self.url = data["attributes"]["url"]
