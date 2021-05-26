@@ -99,9 +99,9 @@ class MangaDex:
             self.session.headers["Authorization"] = resp["token"]["session"]
             return True
 
-    def get_manga(self, id_: str) -> Manga:
+    def get_manga(self, uuid: str) -> Manga:
         """Gets a manga with a specific uuid."""
-        req = self.session.get(f"{self.api}/manga/{id_}")
+        req = self.session.get(f"{self.api}/manga/{uuid}")
         if req.status_code == 200:
             resp = req.json()
             return Manga(resp["data"], resp["relationships"], self)
@@ -110,9 +110,9 @@ class MangaDex:
         else:
             raise APIError(req)
 
-    def get_chapter(self, id_: str) -> Chapter:
+    def get_chapter(self, uuid: str) -> Chapter:
         """Gets a chapter with a specific uuid."""
-        req = self.session.get(f"{self.api}/chapter/{id_}")
+        req = self.session.get(f"{self.api}/chapter/{uuid}")
         if req.status_code == 200:
             resp = req.json()
             return Chapter(resp["data"], resp["relationships"], self)
@@ -154,9 +154,9 @@ class MangaDex:
         params["manga[]"] = mg.id
         return self._retrieve_pages(f"{self.api}/cover", Cover, call_limit=100, params=params)
 
-    def get_cover(self, id_: str) -> Cover:
+    def get_cover(self, uuid: str) -> Cover:
         """Gets a cover with a specific uuid."""
-        req = self.session.get(f"{self.api}/cover/{id_}")
+        req = self.session.get(f"{self.api}/cover/{uuid}")
         if req.status_code == 200:
             resp = req.json()
             return Cover(resp["data"], resp["relationships"], self)
@@ -184,9 +184,9 @@ class MangaDex:
         else:
             raise APIError(req)
 
-    def get_group(self, id_: str) -> Group:
+    def get_group(self, uuid: str) -> Group:
         """Gets a group with a specific uuid."""
-        req = self.session.get(f"{self.api}/group/{id_}")
+        req = self.session.get(f"{self.api}/group/{uuid}")
         if req.status_code == 200:
             resp = req.json()
             return Group(resp["data"], None, self)
@@ -195,11 +195,11 @@ class MangaDex:
         else:
             raise APIError(req)
 
-    def get_user(self, id_: str = "me") -> User:
+    def get_user(self, uuid: str = "me") -> User:
         """Gets an user with a specific uuid."""
-        if id_ == "me" and not self.login_success:
+        if uuid == "me" and not self.login_success:
             raise NotLoggedInError
-        req = self.session.get(f"{self.api}/user/{id_}")
+        req = self.session.get(f"{self.api}/user/{uuid}")
         if req.status_code == 200:
             resp = req.json()
             return User(resp["data"], self)
@@ -223,9 +223,9 @@ class MangaDex:
         return self._retrieve_pages(f"{self.api}/user/follows/manga/feed", Chapter, call_limit=100,
                                     limit=limit, params=params)
 
-    def get_author(self, id_: str) -> Author:
+    def get_author(self, uuid: str) -> Author:
         """Gets an author with a specific uuid"""
-        req = self.session.get(f"{self.api}/author/{id_}")
+        req = self.session.get(f"{self.api}/author/{uuid}")
         if req.status_code == 200:
             resp = req.json()
             return Author(resp["data"], resp["relationships"], self)
