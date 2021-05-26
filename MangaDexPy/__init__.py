@@ -58,11 +58,17 @@ class MangaDex:
         post = self.session.post(f"{self.api}/auth/login", data=json.dumps(credentials))
         return self._store_token(post)
 
+    def login_token(self, token: str) -> bool:
+        """Logs in to MangaDex using a refresh token."""
+        credentials = {"token": token}
+        post = self.session.post(f"{self.api}/auth/refresh", data=json.dumps(credentials))
+        return self._store_token(post)
+
     def logout(self):
         """Resets the current session."""
         self.__init__()
 
-    def refresh(self, token: str = None) -> bool:
+    def refresh_session(self, token: str = None) -> bool:
         """Refreshes the session using the refresh token."""
         if not self.login_success:
             raise NotLoggedInError
@@ -71,7 +77,7 @@ class MangaDex:
         post = self.session.post(f"{self.api}/auth/refresh", data=json.dumps(data))
         return self._store_token(post)
 
-    def check(self) -> bool:
+    def check_session(self) -> bool:
         """Checks if the stored Authorization token is still valid."""
         req = self.session.get(f"{self.api}/auth/check")
         if req.status_code == 200:
