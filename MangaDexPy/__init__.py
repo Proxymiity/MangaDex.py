@@ -21,8 +21,8 @@ class APIError(MDException):
         self.data = None
         try:
             self.data = r.json()
-        except Exception as e:
-            print(e)
+        except json.decoder.JSONDecodeError:
+            self.data = r.content
 
 
 class NoContentError(APIError):
