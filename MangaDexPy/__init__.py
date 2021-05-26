@@ -208,11 +208,12 @@ class MangaDex:
         else:
             raise APIError(req)
 
-    def get_user_list(self, limit: int = 100) -> List[Manga]:
+    def get_user_list(self, limit: int = 100, params: dict = None) -> List[Manga]:
         """Gets the currently logged user's manga list."""
         if not self.login_success:
             raise NotLoggedInError
-        return self._retrieve_pages(f"{self.api}/user/follows/manga", Manga, limit=limit, call_limit=100)
+        return self._retrieve_pages(f"{self.api}/user/follows/manga", Manga, call_limit=100,
+                                    limit=limit, params=params)
 
     def get_user_updates(self, limit: int = 100, params: dict = None) -> List[Chapter]:
         """Gets the currently logged user's manga feed."""
