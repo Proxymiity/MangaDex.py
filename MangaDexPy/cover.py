@@ -1,4 +1,5 @@
 class Cover:
+    """Represents a MangaDex Cover."""
     __slots__ = ("id", "desc", "volume", "file", "parent_manga", "url", "url_512", "url_256", "created_at",
                  "updated_at", "client")
 

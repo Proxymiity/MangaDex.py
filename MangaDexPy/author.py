@@ -1,4 +1,5 @@
 class Author:
+    """Represents a MangaDex Author or Artist."""
     __slots__ = ("id", "name", "image", "bio", "created_at", "updated_at", "client")
 
     def __init__(self, data, rel, client):
