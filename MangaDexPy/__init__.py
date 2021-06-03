@@ -1,5 +1,6 @@
 import requests
 import json
+import time
 from typing import List, Dict, Union, Type
 from .manga import Manga, MangaTag
 from .chapter import Chapter
@@ -51,6 +52,7 @@ class MangaDex:
         self.login_success = False
         self.session_token = None
         self.refresh_token = None
+        self.rate_limit = 0.25
 
     def login(self, username: str, password: str) -> bool:
         """Logs in to MangaDex using an username and a password."""
@@ -125,9 +127,13 @@ class MangaDex:
         """Gets chapters with specific uuids."""
         chapters = []
         sub = [ids[x:x+100] for x in range(0, len(ids), 100)]
+        _rem = len(sub)
         for s in sub:
             p = {"ids[]": s}
             req = self.session.get(f"{self.api}/chapter", params=p)
+            _rem -= 1
+            if _rem:
+                time.sleep(self.rate_limit)
             if req.status_code == 200:
                 resp = req.json()
                 chapters += [x for x in resp["results"]]
@@ -279,6 +285,8 @@ class MangaDex:
                 offset += call_limit
             else:
                 remaining = False
+            if remaining:
+                time.sleep(self.rate_limit)
         if not data:
             raise NoResultsError()
         return [obj(x["data"], x["relationships"], self) for x in data]

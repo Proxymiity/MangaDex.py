@@ -7,7 +7,7 @@ setup(name='MangaDex.py',
       packages=[
           "MangaDexPy"
       ],
-      version='2.0.3',
+      version='2.0.4',
       description='An API wrapper for the MangaDexAPIv5.',
       long_description=long_description,
       long_description_content_type='text/markdown',
@@ -17,7 +17,7 @@ setup(name='MangaDex.py',
       documentation='https://github.com/Proxymiity/MangaDex.py/wiki',
       source='https://github.com/Proxymiity/MangaDex.py/tree/main/MangaDexPy',
       author='Proxymiity',
-      author_email='commits@proxymiity.fr',
+      author_email='dev@ayaya.red',
       license='MIT',
       install_requires=[
             'requests>=2.25.0',
