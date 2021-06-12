@@ -15,9 +15,24 @@ class Chapter:
         self.published_at = data["attributes"]["publishAt"]
         self.created_at = data["attributes"]["createdAt"]
         self.updated_at = data["attributes"]["updatedAt"]
-        self.parent_manga = next((x["id"] for x in rel if x["type"] == "manga"), None)
-        self.group = [x["id"] for x in rel if x["type"] == "scanlation_group"]
-        self.uploader = next((x["id"] for x in rel if x["type"] == "user"), None)
+        try:
+            _manga = [x["attributes"] for x in rel if x["type"] == "manga"]
+            from .manga import Manga
+            self.parent_manga = next((Manga(x, [], client) for x in rel if x["type"] == "manga"), None)
+        except (IndexError, KeyError):
+            self.parent_manga = next((x["id"] for x in rel if x["type"] == "manga"), None)
+        try:
+            _group = [x["attributes"] for x in rel if x["type"] == "scanlation_group"]
+            from .group import Group
+            self.group = [Group(x, [], client) for x in rel if x["type"] == "scanlation_group"]
+        except (IndexError, KeyError):
+            self.group = [x["id"] for x in rel if x["type"] == "scanlation_group"]
+        try:
+            _uploader = [x["attributes"] for x in rel if x["type"] == "user"]
+            from .user import User
+            self.uploader = next((User(x, [], client) for x in rel if x["type"] == "user"), None)
+        except (IndexError, KeyError):
+            self.uploader = next((x["id"] for x in rel if x["type"] == "user"), None)
         self.client = client
 
     def get_md_network(self, force_443: bool = False):

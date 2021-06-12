@@ -2,7 +2,7 @@ class Manga:
     """Represents a MangaDex Manga."""
     __slots__ = ("id", "title", "titles", "desc", "locked", "links", "language", "last_volume", "last_chapter",
                  "type", "status", "year", "content", "tags", "created_at", "updated_at", "author", "artist", "cover",
-                 "chapters", "client")
+                 "client")
 
     def __init__(self, data, rel, client):
         self.id = data["id"]
@@ -21,9 +21,25 @@ class Manga:
         self.tags = [MangaTag(x) for x in data["attributes"]["tags"]]
         self.created_at = data["attributes"]["createdAt"]
         self.updated_at = data["attributes"]["updatedAt"]
-        self.author = [x["id"] for x in rel if x["type"] == "author"]
-        self.artist = [x["id"] for x in rel if x["type"] == "artist"]
-        self.cover = next((x["id"] for x in rel if x["type"] == "cover_art"), None)
+        try:
+            _author = [x["attributes"] for x in rel if x["type"] == "author"]
+            from .author import Author
+            self.author = [Author(x, [], client) for x in rel if x["type"] == "author"]
+        except (IndexError, KeyError):
+            self.author = [x["id"] for x in rel if x["type"] == "author"]
+        try:
+            _artist = [x["attributes"] for x in rel if x["type"] == "artist"]
+            from .author import Author
+            self.artist = [Author(x, [], client) for x in rel if x["type"] == "artist"]
+        except (IndexError, KeyError):
+            self.artist = [x["id"] for x in rel if x["type"] == "artist"]
+        try:
+            _cover = [x["attributes"] for x in rel if x["type"] == "cover_art"]
+            from .cover import Cover
+            _cover_relation = {"type": "manga", "id": self.id}
+            self.cover = next((Cover(x, [_cover_relation], client) for x in rel if x["type"] == "cover_art"), None)
+        except (IndexError, KeyError):
+            self.cover = next((x["id"] for x in rel if x["type"] == "cover_art"), None)
         self.client = client
 
     def get_chapters(self, params=None):
