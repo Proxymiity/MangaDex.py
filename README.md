@@ -30,7 +30,7 @@ print(manga.title + "'s latest chapter:")
 print(manga.last_chapter)
 ````
 Here's the terminal output:  
-![Quick start demo image](https://api.proxymiity.fr/github/Proxymiity/MangaDex.py/quick_start_demo.png)  
+![Quick start demo image](https://api.ayaya.red/github/Proxymiity/MangaDex.py/quick_start_demo.png)  
 *You can find more examples on [this page](https://github.com/Proxymiity/MangaDex.py/wiki/Examples)*
 
 ### Explanation
