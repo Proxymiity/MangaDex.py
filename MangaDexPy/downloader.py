@@ -11,7 +11,10 @@ def dl_page(net, page, path):
             with open(str(Path(path + "/" + page.rsplit("/", 1)[1])), "wb") as f:
                 f.write(p.content)
             success = True if p.status_code <= 400 else False
-            cached = True if p.headers["x-cache"] == "HIT" else False
+            try:
+                cached = True if p.headers["x-cache"] == "HIT" else False
+            except KeyError:  # No cache header returned: we're probably using upstream
+                cached = True
             net.report(page, success, cached, len(p.content), int(p.elapsed.microseconds/1000))
             print(f"Statistics for {page}\nTime: {int(p.elapsed.microseconds/1000)}, length: {len(p.content)}"
                   f"\nSuccess: {success}, was cached on server: {cached}\nHeaders: {p.headers}")
