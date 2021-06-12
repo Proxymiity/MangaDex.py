@@ -42,8 +42,8 @@ class Manga:
             self.cover = next((x["id"] for x in rel if x["type"] == "cover_art"), None)
         self.client = client
 
-    def get_chapters(self, params=None):
-        return self.client.get_manga_chapters(self, params)
+    def get_chapters(self, params=None, includes=None):
+        return self.client.get_manga_chapters(self, params, includes)
 
     def get_covers(self, params=None):
         return self.client.get_manga_covers(self, params)

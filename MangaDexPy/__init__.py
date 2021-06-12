@@ -131,13 +131,13 @@ class MangaDex:
         else:
             raise APIError(req)
 
-    def get_chapters(self, ids: List[str]) -> List[Chapter]:
+    def get_chapters(self, ids: List[str], includes: list = None) -> List[Chapter]:
         """Gets chapters with specific uuids."""
         chapters = []
         sub = [ids[x:x+100] for x in range(0, len(ids), 100)]
         _rem = len(sub)
         for s in sub:
-            p = {"ids[]": s}
+            p = {"ids[]": s, "includes[]": includes}
             req = self.session.get(f"{self.api}/chapter", params=p)
             _rem -= 1
             if _rem:
@@ -153,13 +153,11 @@ class MangaDex:
             raise NoResultsError()
         return [Chapter(x["data"], x["relationships"], self) for x in chapters]
 
-    def get_manga_chapters(self, mg: Manga, params: dict = None) -> List[Chapter]:
+    def get_manga_chapters(self, mg: Manga, params: dict = None, includes: list = None) -> List[Chapter]:
         """Gets chapters associated with a specific Manga."""
         params = params or {}
-        if "limit" in params:
-            params.pop("limit")
-        if "offset" in params:
-            params.pop("offset")
+        if includes:
+            params["includes[]"] = includes
         return self._retrieve_pages(f"{self.api}/manga/{mg.id}/feed", Chapter, call_limit=100, params=params)
 
     def get_manga_covers(self, mg: Manga, params: dict = None) -> List[Cover]:
