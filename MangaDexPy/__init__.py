@@ -250,7 +250,7 @@ class MangaDex:
             raise APIError(post)
 
     def search(self, obj: str, params: dict,
-               limit: int = 100) -> List[Union[Manga, Chapter, Group, Author, Cover]]:
+               limit: int = 100) -> List[Union[Manga, Chapter, Group, Author, Cover, User]]:
         """Searches an object."""
         m = SearchMapping(obj)
         return self._retrieve_pages(f"{self.api}{m.path}", m.object, limit=limit, call_limit=100, params=params)

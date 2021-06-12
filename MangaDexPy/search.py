@@ -3,8 +3,11 @@ from .chapter import Chapter
 from .group import Group
 from .author import Author
 from .cover import Cover
-classes = {"manga": Manga, "chapter": Chapter, "group": Group, "author": Author, "cover": Cover}
-paths = {"manga": "/manga", "chapter": "/chapter", "group": "/group", "author": "/author", "cover": "/cover"}
+from .user import User
+classes = {"manga": Manga, "chapter": Chapter, "group": Group, "author": Author, "cover": Cover,
+           "user": User}
+paths = {"manga": "/manga", "chapter": "/chapter", "group": "/group", "author": "/author", "cover": "/cover",
+         "user": "/user"}
 
 
 class SearchMapping:
