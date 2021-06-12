@@ -11,6 +11,8 @@ from .cover import Cover
 from .network import NetworkChapter
 from .search import SearchMapping
 
+INCLUDE_ALL = ["cover_art", "manga", "chapter", "scanlation_group", "author", "artist", "user"]
+
 
 class MDException(Exception):
     pass
@@ -101,9 +103,12 @@ class MangaDex:
             self.session.headers["Authorization"] = resp["token"]["session"]
             return True
 
-    def get_manga(self, uuid: str) -> Manga:
+    def get_manga(self, uuid: str, includes: list = None) -> Manga:
         """Gets a manga with a specific uuid."""
-        req = self.session.get(f"{self.api}/manga/{uuid}")
+        params = None
+        if includes:
+            params = {"includes[]": includes}
+        req = self.session.get(f"{self.api}/manga/{uuid}", params=params)
         if req.status_code == 200:
             resp = req.json()
             return Manga(resp["data"], resp["relationships"], self)
@@ -112,9 +117,12 @@ class MangaDex:
         else:
             raise APIError(req)
 
-    def get_chapter(self, uuid: str) -> Chapter:
+    def get_chapter(self, uuid: str, includes: list = None) -> Chapter:
         """Gets a chapter with a specific uuid."""
-        req = self.session.get(f"{self.api}/chapter/{uuid}")
+        params = None
+        if includes:
+            params = {"includes[]": includes}
+        req = self.session.get(f"{self.api}/chapter/{uuid}", params=params)
         if req.status_code == 200:
             resp = req.json()
             return Chapter(resp["data"], resp["relationships"], self)
