@@ -208,7 +208,7 @@ class MangaDex:
         req = self.session.get(f"{self.api}/user/{uuid}")
         if req.status_code == 200:
             resp = req.json()
-            return User(resp["data"], self)
+            return User(resp["data"], [], self)
         elif req.status_code == 404:
             raise NoContentError(req)
         else:
