@@ -245,6 +245,10 @@ class MangaDex:
         else:
             raise APIError(req)
 
+    def get_artist(self, uuid: str) -> Author:
+        """Gets an artist (named as 'author') with a specific uuid. Alias to get_author()"""
+        return self.get_author(uuid)
+
     def transform_ids(self, obj: str, content: List[int]) -> Dict:
         """Gets uuids from legacy ids."""
         data = {"type": obj, "ids": content}
