@@ -4,14 +4,15 @@ class Cover:
                  "updated_at", "client")
 
     def __init__(self, data, rel, client):
-        self.id = data["id"]
-        self.desc = data["attributes"]["description"]
-        self.volume = data["attributes"]["volume"]
-        self.file = data["attributes"]["fileName"]
+        self.id = data.get("id")
+        _attrs = data.get("attributes")
+        self.desc = _attrs.get("description")
+        self.volume = _attrs.get("volume")
+        self.file = _attrs.get("fileName")
         self.parent_manga = next((x["id"] for x in rel if x["type"] == "manga"), None)
         self.url = f"https://uploads.mangadex.org/covers/{self.parent_manga}/{self.file}"
         self.url_512 = f"{self.url}.512.jpg"
         self.url_256 = f"{self.url}.256.jpg"
-        self.created_at = data["attributes"]["createdAt"]
-        self.updated_at = data["attributes"]["updatedAt"]
+        self.created_at = _attrs.get("createdAt")
+        self.updated_at = _attrs.get("updatedAt")
         self.client = client

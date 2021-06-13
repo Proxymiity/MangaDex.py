@@ -4,17 +4,18 @@ class Chapter:
                  "created_at", "updated_at", "parent_manga", "group", "uploader", "client")
 
     def __init__(self, data, rel, client):
-        self.id = data["id"]
-        self.volume = data["attributes"]["volume"]
-        self.chapter = data["attributes"]["chapter"]
-        self.title = data["attributes"]["title"]
-        self.language = data["attributes"]["translatedLanguage"]
-        self.hash = data["attributes"]["hash"]
-        self.pages = data["attributes"]["data"]
-        self.pages_redux = data["attributes"]["dataSaver"]
-        self.published_at = data["attributes"]["publishAt"]
-        self.created_at = data["attributes"]["createdAt"]
-        self.updated_at = data["attributes"]["updatedAt"]
+        self.id = data.get("id")
+        _attrs = data.get("attributes")
+        self.volume = _attrs.get("volume")
+        self.chapter = _attrs.get("chapter")
+        self.title = _attrs.get("title")
+        self.language = _attrs.get("translatedLanguage")
+        self.hash = _attrs.get("hash")
+        self.pages = _attrs.get("data")
+        self.pages_redux = _attrs.get("dataSaver")
+        self.published_at = _attrs.get("publishAt")
+        self.created_at = _attrs.get("createdAt")
+        self.updated_at = _attrs.get("updatedAt")
         try:
             _manga = [x["attributes"] for x in rel if x["type"] == "manga"]
             from .manga import Manga

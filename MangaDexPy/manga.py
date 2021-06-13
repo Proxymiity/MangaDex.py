@@ -5,22 +5,22 @@ class Manga:
                  "client")
 
     def __init__(self, data, rel, client):
-        self.id = data["id"]
-        self.title = data["attributes"]["title"]
-        self.titles = data["attributes"]["altTitles"]
-        self.desc = data["attributes"]["description"]
-        self.locked = data["attributes"]["isLocked"]
-        self.links = data["attributes"]["links"]
-        self.language = data["attributes"]["originalLanguage"]
-        self.last_volume = data["attributes"]["lastVolume"]
-        self.last_chapter = data["attributes"]["lastChapter"]
-        self.type = data["attributes"]["publicationDemographic"]
-        self.status = data["attributes"]["status"]
-        self.year = data["attributes"]["year"]
-        self.content = data["attributes"]["contentRating"]
-        self.tags = [MangaTag(x) for x in data["attributes"]["tags"]]
-        self.created_at = data["attributes"]["createdAt"]
-        self.updated_at = data["attributes"]["updatedAt"]
+        self.id = data.get("id")
+        _attrs = data.get("attributes")
+        self.title = _attrs.get("title")
+        self.titles = _attrs.get("altTitles")
+        self.desc = _attrs.get("description")
+        self.links = _attrs.get("links")
+        self.language = _attrs.get("originalLanguage")
+        self.last_volume = _attrs.get("lastVolume")
+        self.last_chapter = _attrs.get("lastChapter")
+        self.type = _attrs.get("publicationDemographic")
+        self.status = _attrs.get("status")
+        self.year = _attrs.get("year")
+        self.content = _attrs.get("contentRating")
+        self.tags = [MangaTag(x) for x in _attrs.get("tags")]
+        self.created_at = _attrs.get("createdAt")
+        self.updated_at = _attrs.get("updatedAt")
         try:
             _author = [x["attributes"] for x in rel if x["type"] == "author"]
             from .author import Author
@@ -54,5 +54,5 @@ class MangaTag:
     __slots__ = ("id", "name")
 
     def __init__(self, data):
-        self.id = data["id"]
-        self.name = data["attributes"]["name"]
+        self.id = data.get("id")
+        self.name = data.get("attributes").get("name")
