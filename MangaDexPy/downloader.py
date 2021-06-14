@@ -1,8 +1,10 @@
 from MangaDexPy import APIError, Chapter, Manga
 import os
 import time
+import threading
 from requests import exceptions as rex
 from pathlib import Path
+net_table = {}
 
 # This script is provided 'as-is', as an example for library usage.
 # Overriding it in your code is strongly recommended to gain control on it and fine-tune its behavior.
@@ -44,29 +46,54 @@ def dl_page(net, page, pages_total, path):
         return False
 
 
+def _page_target(chapter, page, pages, path):
+    global net_table
+    net = net_table[chapter.id]
+    while True:
+        resp = dl_page(net, page, pages, path)
+        if resp:
+            break
+        else:
+            net_table[chapter.id] = chapter.get_md_network()
+            print(f"Got assigned a new MD@H node to download: {net.node_url}. Resuming downloads...")
+
+
 def dl_chapter(chapter: Chapter, path, light: bool = False, time_controller: int = 1):
     """Downloads an entire chapter."""
-    net = chapter.get_md_network()
+    global net_table
+    net_table[chapter.id] = chapter.get_md_network()
+    net = net_table[chapter.id]
     print(f"Got assigned a MD@H node to download: {net.node_url}. Attempting to download {len(net.pages)} pages.")
-    if light:
-        pages = net.pages_redux
-    else:
-        pages = net.pages
-    tot = len(pages)
+    pages = net.pages_redux if light else net.pages
     for x in pages:
-        while True:
-            resp = dl_page(net, x, tot, path)
-            if resp:
-                break
-            else:
-                net = chapter.get_md_network()
-                print(f"Got assigned a new MD@H node to download: {net.node_url}. Resuming downloads...")
+        _page_target(chapter, x, len(pages), path)
         if time_controller:
             time.sleep(time_controller)
+    net_table.pop(chapter.id)
     print(f"Successfully downloaded and reported status for {len(net.pages)} pages.")
 
 
-def dl_manga(manga: Manga, base_path, language: str = "en", light: bool = False, time_controller: int = 1):
+def threaded_dl_chapter(chapter: Chapter, path, light: bool = False):
+    """Downloads an entire chapter using threads."""
+    global net_table
+    net_table[chapter.id] = chapter.get_md_network()
+    net = net_table[chapter.id]
+    print(f"Got assigned a MD@H node to download: {net.node_url}. Attempting to download {len(net.pages)} pages.")
+    pages = net.pages_redux if light else net.pages
+    threads = []
+    for x in pages:
+        t = threading.Thread(target=_page_target, args=[chapter, x, len(pages), path])
+        threads.append(t)
+    for y in range(len(threads)):
+        threads[y].start()
+    for y in range(len(threads)):
+        threads[y].join()
+    net_table.pop(chapter.id)
+    print(f"Successfully ran {len(net.pages)} threads.")
+
+
+def dl_manga(manga: Manga, base_path, language: str = "en", light: bool = False, time_controller: int = 1,
+             threaded: bool = False):
     """Downloads an entire manga."""
     bp = Path(base_path)
     chs = manga.get_chapters()
@@ -77,5 +104,8 @@ def dl_manga(manga: Manga, base_path, language: str = "en", light: bool = False,
             print(f"Folder for {str(cp)} already exists, skipping chapter.")
         else:
             os.mkdir(str(cp))
-            dl_chapter(ch, str(cp), light, time_controller)
+            if threaded:
+                threaded_dl_chapter(ch, str(cp), light)
+            else:
+                dl_chapter(ch, str(cp), light, time_controller)
     print(f"Successfully processed {len(chs)} chapters.")
