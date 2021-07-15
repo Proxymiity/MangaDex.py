@@ -1,6 +1,3 @@
-from .user import User
-
-
 class Group:
     """Represents a MangaDex Group."""
     __slots__ = ("id", "name", "leader", "members", "created_at", "updated_at", "client")
@@ -9,9 +6,18 @@ class Group:
         self.id = data.get("id")
         _attrs = data.get("attributes")
         self.name = _attrs.get("name")
-        self.leader = User(_attrs.get("leader"), [], client)
-        self.members = [User(x, [], client) for x in _attrs.get("members")]
         self.created_at = _attrs.get("createdAt")
         self.updated_at = _attrs.get("updatedAt")
-        self.client = rel  # Dummy assignment for the search helper to work properly. Does not affect the object.
+        try:
+            _members = [x["attributes"] for x in rel if x["type"] == "member"]
+            from .user import User
+            self.members = [User(x, [], client) for x in rel if x["type"] == "member"]
+        except (IndexError, KeyError):
+            self.members = [x["id"] for x in rel if x["type"] == "member"]
+        try:
+            _leader = [x["attributes"] for x in rel if x["type"] == "leader"]
+            from .user import User
+            self.leader = next(User(x, [], client) for x in rel if x["type"] == "leader")
+        except (IndexError, KeyError):
+            self.leader = next(x["id"] for x in rel if x["type"] == "leader")
         self.client = client

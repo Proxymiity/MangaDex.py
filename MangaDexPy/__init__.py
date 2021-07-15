@@ -11,7 +11,7 @@ from .cover import Cover
 from .network import NetworkChapter
 from .search import SearchMapping
 
-INCLUDE_ALL = ["cover_art", "manga", "chapter", "scanlation_group", "author", "artist", "user"]
+INCLUDE_ALL = ["cover_art", "manga", "chapter", "scanlation_group", "author", "artist", "user", "leader", "member"]
 
 
 class MDException(Exception):
