@@ -17,7 +17,7 @@ class Group:
         try:
             _leader = [x["attributes"] for x in rel if x["type"] == "leader"]
             from .user import User
-            self.leader = next(User(x, [], client) for x in rel if x["type"] == "leader")
+            self.leader = next((User(x, [], client) for x in rel if x["type"] == "leader"), None)
         except (IndexError, KeyError):
-            self.leader = next(x["id"] for x in rel if x["type"] == "leader")
+            self.leader = next((x["id"] for x in rel if x["type"] == "leader"), None)
         self.client = client
