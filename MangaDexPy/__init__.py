@@ -11,7 +11,7 @@ from .cover import Cover
 from .network import NetworkChapter
 from .search import SearchMapping
 
-INCLUDE_ALL = ["cover_art", "manga", "chapter", "scanlation_group", "author", "artist", "user"]
+INCLUDE_ALL = ["cover_art", "manga", "chapter", "scanlation_group", "author", "artist", "user", "leader", "member"]
 
 
 class MDException(Exception):
@@ -200,12 +200,15 @@ class MangaDex:
         else:
             raise APIError(req)
 
-    def get_group(self, uuid: str) -> Group:
+    def get_group(self, uuid: str, includes: list = None) -> Group:
         """Gets a group with a specific uuid."""
-        req = self.session.get(f"{self.api}/group/{uuid}")
+        params = None
+        if includes:
+            params = {"includes[]": includes}
+        req = self.session.get(f"{self.api}/group/{uuid}", params=params)
         if req.status_code == 200:
             resp = req.json()
-            return Group(resp["data"], None, self)
+            return Group(resp["data"], resp["relationships"], self)
         elif req.status_code == 404:
             raise NoContentError(req)
         else:
