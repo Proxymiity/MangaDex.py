@@ -1,6 +1,6 @@
 class Manga:
     """Represents a MangaDex Manga."""
-    __slots__ = ("id", "title", "titles", "desc", "locked", "links", "language", "last_volume", "last_chapter",
+    __slots__ = ("id", "title", "titles", "desc", "links", "language", "last_volume", "last_chapter",
                  "type", "status", "year", "content", "tags", "created_at", "updated_at", "author", "artist", "cover",
                  "client")
 
