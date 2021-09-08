@@ -6,7 +6,7 @@ class Cover:
     def __init__(self, data, client):
         self.id = data.get("id")
         _attrs = data.get("attributes")
-        _rel = data.get("relationships")
+        _rel = data.get("relationships", [])
         self.desc = _attrs.get("description")
         self.volume = _attrs.get("volume")
         self.file = _attrs.get("fileName")

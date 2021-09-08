@@ -5,7 +5,7 @@ class Group:
     def __init__(self, data, client):
         self.id = data.get("id")
         _attrs = data.get("attributes")
-        _rel = data.get("relationships")
+        _rel = data.get("relationships", [])
         self.name = _attrs.get("name")
         self.created_at = _attrs.get("createdAt")
         self.updated_at = _attrs.get("updatedAt")

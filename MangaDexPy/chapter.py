@@ -6,7 +6,7 @@ class Chapter:
     def __init__(self, data, client):
         self.id = data.get("id")
         _attrs = data.get("attributes")
-        _rel = data.get("relationships")
+        _rel = data.get("relationships", [])
         self.volume = _attrs.get("volume")
         self.chapter = _attrs.get("chapter")
         self.title = _attrs.get("title")

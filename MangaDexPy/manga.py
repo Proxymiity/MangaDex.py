@@ -7,7 +7,7 @@ class Manga:
     def __init__(self, data, client):
         self.id = data.get("id")
         _attrs = data.get("attributes")
-        _rel = data.get("relationships")
+        _rel = data.get("relationships", [])
         self.title = _attrs.get("title")
         self.titles = _attrs.get("altTitles")
         self.desc = _attrs.get("description")
