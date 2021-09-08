@@ -114,7 +114,7 @@ class MangaDex:
         req = self.session.get(f"{self.api}/manga/{uuid}", params=params)
         if req.status_code == 200:
             resp = req.json()
-            return Manga(resp["data"], resp["relationships"], self)
+            return Manga(resp["data"], self)
         elif req.status_code == 404:
             raise NoContentError(req)
         else:
@@ -128,7 +128,7 @@ class MangaDex:
         req = self.session.get(f"{self.api}/chapter/{uuid}", params=params)
         if req.status_code == 200:
             resp = req.json()
-            return Chapter(resp["data"], resp["relationships"], self)
+            return Chapter(resp["data"], self)
         elif req.status_code == 404:
             raise NoContentError(req)
         else:
@@ -154,7 +154,7 @@ class MangaDex:
                 raise APIError(req)
         if not sub or not chapters:
             raise NoResultsError()
-        return [Chapter(x["data"], x["relationships"], self) for x in chapters]
+        return [Chapter(x["data"], self) for x in chapters]
 
     def get_manga_chapters(self, mg: Manga, params: dict = None, includes: list = None) -> List[Chapter]:
         """Gets chapters associated with a specific Manga."""
@@ -174,7 +174,7 @@ class MangaDex:
         req = self.session.get(f"{self.api}/cover/{uuid}")
         if req.status_code == 200:
             resp = req.json()
-            return Cover(resp["data"], resp["relationships"], self)
+            return Cover(resp["data"], self)
         elif req.status_code == 404:
             raise NoContentError(req)
         else:
@@ -208,7 +208,7 @@ class MangaDex:
         req = self.session.get(f"{self.api}/group/{uuid}", params=params)
         if req.status_code == 200:
             resp = req.json()
-            return Group(resp["data"], resp["relationships"], self)
+            return Group(resp["data"], self)
         elif req.status_code == 404:
             raise NoContentError(req)
         else:
@@ -221,7 +221,7 @@ class MangaDex:
         req = self.session.get(f"{self.api}/user/{uuid}")
         if req.status_code == 200:
             resp = req.json()
-            return User(resp["data"], [], self)
+            return User(resp["data"], self)
         elif req.status_code == 404:
             raise NoContentError(req)
         else:
@@ -246,7 +246,7 @@ class MangaDex:
         req = self.session.get(f"{self.api}/author/{uuid}")
         if req.status_code == 200:
             resp = req.json()
-            return Author(resp["data"], resp["relationships"], self)
+            return Author(resp["data"], self)
         elif req.status_code == 404:
             raise NoContentError(req)
         else:
@@ -307,4 +307,4 @@ class MangaDex:
                 time.sleep(self.rate_limit)
         if not data:
             raise NoResultsError()
-        return [obj(x["data"], x["relationships"], self) for x in data]
+        return [obj(x["data"], self) for x in data]
