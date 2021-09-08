@@ -37,9 +37,11 @@ class Manga:
         try:
             _cover = [x["attributes"] for x in _rel if x["type"] == "cover_art"]
             from .cover import Cover
-            _cover__relation = {"type": "manga", "id": self.id}  # FIXME: Put some kind of cover_relationship in the obj
-            # self.cover = next((Cover(x, [_cover__relation], client) for x in _rel if x["type"] == "cover_art"), None)
-            self.cover = next((Cover(x, client) for x in _rel if x["type"] == "cover_art"), None)
+            _related_cover = next((x for x in _rel if x["type"] == "cover_art"), None)
+            if _related_cover is not None:
+                _related_cover["relationships"] = [{"type": "manga", "id": self.id}]
+                _related_cover = Cover(_related_cover, client)
+            self.cover = _related_cover
         except (IndexError, KeyError):
             self.cover = next((x["id"] for x in _rel if x["type"] == "cover_art"), None)
         self.client = client
