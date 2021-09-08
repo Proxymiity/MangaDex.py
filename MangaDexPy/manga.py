@@ -4,9 +4,10 @@ class Manga:
                  "type", "status", "year", "content", "tags", "created_at", "updated_at", "author", "artist", "cover",
                  "client")
 
-    def __init__(self, data, rel, client):
+    def __init__(self, data, client):
         self.id = data.get("id")
         _attrs = data.get("attributes")
+        _rel = data.get("relationships", [])
         self.title = _attrs.get("title")
         self.titles = _attrs.get("altTitles")
         self.desc = _attrs.get("description")
@@ -22,24 +23,27 @@ class Manga:
         self.created_at = _attrs.get("createdAt")
         self.updated_at = _attrs.get("updatedAt")
         try:
-            _author = [x["attributes"] for x in rel if x["type"] == "author"]
+            _author = [x["attributes"] for x in _rel if x["type"] == "author"]
             from .author import Author
-            self.author = [Author(x, [], client) for x in rel if x["type"] == "author"]
+            self.author = [Author(x, client) for x in _rel if x["type"] == "author"]
         except (IndexError, KeyError):
-            self.author = [x["id"] for x in rel if x["type"] == "author"]
+            self.author = [x["id"] for x in _rel if x["type"] == "author"]
         try:
-            _artist = [x["attributes"] for x in rel if x["type"] == "artist"]
+            _artist = [x["attributes"] for x in _rel if x["type"] == "artist"]
             from .author import Author
-            self.artist = [Author(x, [], client) for x in rel if x["type"] == "artist"]
+            self.artist = [Author(x, client) for x in _rel if x["type"] == "artist"]
         except (IndexError, KeyError):
-            self.artist = [x["id"] for x in rel if x["type"] == "artist"]
+            self.artist = [x["id"] for x in _rel if x["type"] == "artist"]
         try:
-            _cover = [x["attributes"] for x in rel if x["type"] == "cover_art"]
+            _cover = [x["attributes"] for x in _rel if x["type"] == "cover_art"]
             from .cover import Cover
-            _cover_relation = {"type": "manga", "id": self.id}
-            self.cover = next((Cover(x, [_cover_relation], client) for x in rel if x["type"] == "cover_art"), None)
+            _related_cover = next((x for x in _rel if x["type"] == "cover_art"), None)
+            if _related_cover is not None:
+                _related_cover["relationships"] = [{"type": "manga", "id": self.id}]
+                _related_cover = Cover(_related_cover, client)
+            self.cover = _related_cover
         except (IndexError, KeyError):
-            self.cover = next((x["id"] for x in rel if x["type"] == "cover_art"), None)
+            self.cover = next((x["id"] for x in _rel if x["type"] == "cover_art"), None)
         self.client = client
 
     def get_chapters(self, params=None, includes=None):
