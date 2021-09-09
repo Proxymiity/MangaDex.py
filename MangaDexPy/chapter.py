@@ -10,7 +10,7 @@ class Chapter:
         self.volume = _attrs.get("volume")
         self.chapter = _attrs.get("chapter")
         self.title = _attrs.get("title")
-        self.language = _attrs.get("translatedLanguage")
+        self.language = _attrs.get("translatedLanguage").lower()
         self.hash = _attrs.get("hash")
         self.pages = _attrs.get("data")
         self.pages_redux = _attrs.get("dataSaver")

@@ -12,7 +12,7 @@ class Manga:
         self.titles = _attrs.get("altTitles")
         self.desc = _attrs.get("description")
         self.links = _attrs.get("links")
-        self.language = _attrs.get("originalLanguage")
+        self.language = _attrs.get("originalLanguage").lower()
         self.last_volume = _attrs.get("lastVolume")
         self.last_chapter = _attrs.get("lastChapter")
         self.type = _attrs.get("publicationDemographic")
