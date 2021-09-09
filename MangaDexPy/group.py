@@ -8,15 +8,15 @@ class Group:
         _attrs = data.get("attributes")
         _rel = data.get("relationships", [])
         self.name = _attrs.get("name")
-        self.desc = None
-        self.website = None
-        self.irc_server = None
-        self.irc_channel = None
-        self.discord = None
-        self.email = None
-        self.locked = None
-        self.official = None
-        self.verified = None
+        self.desc = _attrs.get("description")
+        self.website = _attrs.get("website")
+        self.irc_server = _attrs.get("ircServer")
+        self.irc_channel = _attrs.get("ircChannel")
+        self.discord = _attrs.get("discord")
+        self.email = _attrs.get("contactEmail")
+        self.locked = _attrs.get("locked")
+        self.official = _attrs.get("official")
+        self.verified = _attrs.get("verified")
         self.created_at = _attrs.get("createdAt")
         self.updated_at = _attrs.get("updatedAt")
         try:
