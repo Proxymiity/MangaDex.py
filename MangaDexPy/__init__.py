@@ -147,14 +147,14 @@ class MangaDex:
                 time.sleep(self.rate_limit)
             if req.status_code == 200:
                 resp = req.json()
-                chapters += [x for x in resp["results"]]
+                chapters += [x for x in resp["data"]]
             elif req.status_code == 204:
                 pass
             else:
                 raise APIError(req)
         if not sub or not chapters:
             raise NoResultsError()
-        return [Chapter(x["data"], self) for x in chapters]
+        return [Chapter(x, self) for x in chapters]
 
     def get_manga_chapters(self, mg: Manga, params: dict = None, includes: list = None) -> List[Chapter]:
         """Gets chapters associated with a specific Manga."""
@@ -291,7 +291,7 @@ class MangaDex:
             req = self.session.get(url, params=p)
             if req.status_code == 200:
                 resp = req.json()
-                data += [x for x in resp["results"]]
+                data += [x for x in resp["data"]]
             elif req.status_code == 204:
                 pass
             else:
@@ -307,4 +307,4 @@ class MangaDex:
                 time.sleep(self.rate_limit)
         if not data:
             raise NoResultsError()
-        return [obj(x["data"], self) for x in data]
+        return [obj(x, self) for x in data]
