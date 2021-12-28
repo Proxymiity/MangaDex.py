@@ -308,3 +308,6 @@ class MangaDex:
         if not data:
             raise NoResultsError()
         return [obj(x, self) for x in data]
+
+
+Client = MangaDex

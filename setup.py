@@ -7,7 +7,7 @@ setup(name='MangaDex.py',
       packages=[
           "MangaDexPy"
       ],
-      version='2.0.9',
+      version='2.0.10',
       description='An API wrapper for the MangaDexAPIv5.',
       long_description=long_description,
       long_description_content_type='text/markdown',
