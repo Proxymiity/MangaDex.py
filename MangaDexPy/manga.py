@@ -47,6 +47,7 @@ class Manga:
         self.client = client
 
     def get_chapters(self, params=None, includes=None):
+        includes = self.client.constants.get("INCLUDE_ALL") if not includes else includes
         return self.client.get_manga_chapters(self, params, includes)
 
     def get_covers(self, params=None):

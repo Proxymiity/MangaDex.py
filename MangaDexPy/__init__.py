@@ -55,6 +55,7 @@ class MangaDex:
         self.session_token = None
         self.refresh_token = None
         self.rate_limit = 0.25
+        self.constants = {"INCLUDE_ALL": INCLUDE_ALL}
 
     def login(self, username: str, password: str) -> bool:
         """Logs in to MangaDex using an username and a password."""
@@ -108,6 +109,7 @@ class MangaDex:
 
     def get_manga(self, uuid: str, includes: list = None) -> Manga:
         """Gets a manga with a specific uuid."""
+        includes = INCLUDE_ALL if not includes else includes
         params = None
         if includes:
             params = {"includes[]": includes}
@@ -122,6 +124,7 @@ class MangaDex:
 
     def get_chapter(self, uuid: str, includes: list = None) -> Chapter:
         """Gets a chapter with a specific uuid."""
+        includes = INCLUDE_ALL if not includes else includes
         params = None
         if includes:
             params = {"includes[]": includes}
@@ -136,6 +139,7 @@ class MangaDex:
 
     def get_chapters(self, ids: List[str], includes: list = None) -> List[Chapter]:
         """Gets chapters with specific uuids."""
+        includes = INCLUDE_ALL if not includes else includes
         chapters = []
         sub = [ids[x:x+100] for x in range(0, len(ids), 100)]
         _rem = len(sub)
@@ -158,6 +162,7 @@ class MangaDex:
 
     def get_manga_chapters(self, mg: Manga, params: dict = None, includes: list = None) -> List[Chapter]:
         """Gets chapters associated with a specific Manga."""
+        includes = INCLUDE_ALL if not includes else includes
         params = params or {}
         if includes:
             params["includes[]"] = includes
@@ -202,6 +207,7 @@ class MangaDex:
 
     def get_group(self, uuid: str, includes: list = None) -> Group:
         """Gets a group with a specific uuid."""
+        includes = INCLUDE_ALL if not includes else includes
         params = None
         if includes:
             params = {"includes[]": includes}
