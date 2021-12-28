@@ -1,7 +1,7 @@
 class Chapter:
     """Represents a MangaDex Chapter."""
-    __slots__ = ("id", "volume", "chapter", "title", "language", "hash", "pages", "pages_redux", "pages_external",
-                 "published_at", "created_at", "updated_at", "parent_manga", "group", "uploader", "client")
+    __slots__ = ("id", "volume", "chapter", "title", "language", "pages_external", "published_at", "created_at",
+                 "updated_at", "parent_manga", "group", "uploader", "client")
 
     def __init__(self, data, client):
         self.id = data.get("id")
