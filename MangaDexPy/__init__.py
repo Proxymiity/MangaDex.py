@@ -186,7 +186,7 @@ class MangaDex:
         req = self.session.get(f"{self.api}/at-home/server/{ch.id}", params=data)
         if req.status_code == 200:
             resp = req.json()
-            return NetworkChapter(ch, resp["baseUrl"], self)
+            return NetworkChapter(resp, ch, self)
         else:
             raise APIError(req)
 
