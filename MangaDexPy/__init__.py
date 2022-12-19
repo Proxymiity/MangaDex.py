@@ -10,7 +10,7 @@ from .author import Author
 from .cover import Cover
 from .network import NetworkChapter
 from .search import SearchMapping
-
+from .mdlist import MDList
 INCLUDE_ALL = ["cover_art", "manga", "chapter", "scanlation_group", "author", "artist", "user", "leader", "member"]
 
 
@@ -238,6 +238,23 @@ class MangaDex:
         if not self.login_success:
             raise NotLoggedInError
         return self._retrieve_pages(f"{self.api}/user/follows/manga", Manga, limit=limit, call_limit=100)
+
+    def get_MDList(self, uuid: str) -> MDList:
+        req = self.session.get(f"{self.api}/list/{uuid}")
+        if req.status_code == 200:
+            resp = req.json()
+            mdl = MDList(resp["data"], self)
+            titles = []
+            mdl.creator = self.get_user(mdl.creator)
+            for title in mdl.titles:
+                titles.append(self.get_manga(title))
+                time.sleep(self.rate_limit)
+            mdl.titles = titles
+            return mdl
+        elif req.status_code == 404:
+            raise NoContentError(req)
+        else:
+            return APIError(req)
 
     def get_user_updates(self, limit: int = 100, params: dict = None) -> List[Chapter]:
         """Gets the currently logged user's manga feed."""
