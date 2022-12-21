@@ -104,7 +104,7 @@ class MangaDex:
             self.login_success = True
             self.session_token = resp["token"]["session"]
             self.refresh_token = resp["token"]["refresh"]
-            self.session.headers["Authorization"] = resp["token"]["session"]
+            self.session.headers["Authorization"] = "Bearer " + resp["token"]["session"]
             return True
 
     def get_manga(self, uuid: str, includes: list = None) -> Manga:
