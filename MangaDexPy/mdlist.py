@@ -1,6 +1,6 @@
 class MDList:
     """Represents a user created MDList"""
-    __slots__ = ("id", "name", "visibility", "version", "titles", "creator","client")
+    __slots__ = ("id", "name", "visibility", "titles", "creator","client")
 
     def __init__(self, data, client):
         self.id = data.get("id")
@@ -8,7 +8,6 @@ class MDList:
         _rel = data.get("relationships", [])
         self.name = _attrs.get("name")
         self.visibility = _attrs.get("visibility")
-        self.version = _attrs.get("version")
         self.titles = [x["id"] for x in _rel if x["type"] == "manga"]
         self.creator = next((x["id"] for x in _rel if x["type"] == "user"), None)
         self.client = client

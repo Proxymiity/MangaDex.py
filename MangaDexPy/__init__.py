@@ -240,21 +240,50 @@ class MangaDex:
         return self._retrieve_pages(f"{self.api}/user/follows/manga", Manga, limit=limit, call_limit=100)
 
     def get_MDList(self, uuid: str) -> MDList:
+        """Gets an MDList with a specific uuid."""
         req = self.session.get(f"{self.api}/list/{uuid}")
         if req.status_code == 200:
             resp = req.json()
-            mdl = MDList(resp["data"], self)
-            titles = []
-            mdl.creator = self.get_user(mdl.creator)
-            for title in mdl.titles:
-                titles.append(self.get_manga(title))
-                time.sleep(self.rate_limit)
-            mdl.titles = titles
-            return mdl
+            return MDList(resp["data"], self)
         elif req.status_code == 404:
             raise NoContentError(req)
         else:
             return APIError(req)
+
+    def get_MDList_feed(self, uuid: str, limit: int = 100, params: dict = None) -> List[Chapter]:
+        """Gets the feed of the specified MDList"""
+        params = params or {}
+        return self._retrieve_pages(f"{self.api}/list/{uuid}/feed", Chapter, call_limit=100, limit=limit, params=params)
+
+    def get_user_MDList(self, uuid: str = None, limit:int = 100) -> List[MDList]:
+        """Gets the currently logged user's MDLists, or a specified user's created MDLists."""
+        url = ""
+        if uuid is not None:
+            url = f"{self.api}/{uuid}/list"
+        else:
+            if not self.login_success:
+                raise NotLoggedInError
+            url = f"{self.api}/user/list"
+        return self._retrieve_pages(url, MDList, limit)
+
+    def get_user_followed_MDList(self, limit:int = 100) -> List[MDList]:
+        """Gets the currently logged user's followed MDLists"""
+        if not self.login_success:
+            raise NotLoggedInError
+        return self._retrieve_pages(f"{self.api}/user/follows/list", MDList, limit=limit)
+
+    def is_following_MDList(self, uuid:str) -> bool:
+        """Returns whether the currently logged user is following an MDList"""
+        if not self.login_success:
+            raise NotLoggedInError
+        req = self.session.get(f"{self.api}/user/follows/list/{uuid}")
+        if req.status_code == 200:
+            return True
+        elif req.status_code == 404: # Two things could actually happen here, uuid is invalid or user isn't following, both return 404
+            return False
+        else:
+            raise APIError
+
 
     def get_user_updates(self, limit: int = 100, params: dict = None) -> List[Chapter]:
         """Gets the currently logged user's manga feed."""
@@ -296,9 +325,9 @@ class MangaDex:
         m = SearchMapping(obj)
         return self._retrieve_pages(f"{self.api}{m.path}", m.object, limit=limit, call_limit=100, params=params)
 
-    def _retrieve_pages(self, url: str, obj: Type[Union[Manga, Chapter, Group, Author, Cover]],
+    def _retrieve_pages(self, url: str, obj: Type[Union[Manga, Chapter, Group, Author, Cover, MDList]],
                         limit: int = 0, call_limit: int = 500,
-                        params: dict = None) -> List[Union[Manga, Chapter, Group, Author, Cover]]:
+                        params: dict = None) -> List[Union[Manga, Chapter, Group, Author, Cover, MDList]]:
         params = params or {}
         data = []
         offset = 0
