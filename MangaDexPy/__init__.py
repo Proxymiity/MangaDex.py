@@ -174,6 +174,14 @@ class MangaDex:
         params["manga[]"] = mg.id
         return self._retrieve_pages(f"{self.api}/cover", Cover, call_limit=100, params=params)
 
+    def get_manga_feed(self, mg: Manga, limit: int = 100, params: dict = None, includes: list = None) -> List[Chapter]:
+        """Gets the feed of a specific Manga."""
+        includes = INCLUDE_ALL if not includes else includes
+        params = params or {}
+        if includes:
+            params["includes[]"] = includes
+        return self._retrieve_pages(f"{self.api}/manga/{mg.id}/feed", Chapter, call_limit=100, params=params, limit=limit)
+
     def get_cover(self, uuid: str) -> Cover:
         """Gets a cover with a specific uuid."""
         req = self.session.get(f"{self.api}/cover/{uuid}")
