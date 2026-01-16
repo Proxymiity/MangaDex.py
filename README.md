@@ -1,7 +1,7 @@
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/ca6509334c4e425f8d9d61083715cacb)](https://www.codacy.com/gh/Proxymiity/MangaDex.py/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Proxymiity/MangaDex.py&amp;utm_campaign=Badge_Grade)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Proxymiity_MangaDex.py&metric=alert_status)](https://sonarcloud.io/dashboard?id=Proxymiity_MangaDex.py)
-[![MangaDex API Status](https://img.shields.io/website-up-down-green-red/https/api.mangadex.org?label=mangadex%20api%20status)](https://api.mangadex.org/)
-[![MangaDex Website Status](https://img.shields.io/website-up-down-green-red/https/mangadex.org?label=mangadex%20website%20status)](https://mangadex.org/)
+> [!warning]
+> This library is not updated anymore. This project is now over, please see other alternatives such as [EMACC99/mangadex](https://github.com/EMACC99/mangadex). You can also read the API docs [here](https://api.mangadex.org/docs/) and get yourself familiar with them.  
+> The use of this library is discouraged. Packages from PyPI may be removed at any given time.  
+> **As a reminder, I was never affiliated with MangaDex by any means.**
 
 # MangaDex.py
 
